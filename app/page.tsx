@@ -1,0 +1,152 @@
+import { createClient } from "@/lib/supabase/server";
+import { Flame, Zap, Cog, Truck, BatteryCharging, Wrench, Fuel, Snowflake } from "lucide-react";
+
+const IKON_KATEGORI: Record<string, React.ElementType> = {
+  "Motor Bakar": Flame,
+  "Kelistrikan Otomotif": Zap,
+  "Sasis & Pemindah Tenaga": Cog,
+  "Alat Berat": Truck,
+  "Kendaraan Listrik (EV)": BatteryCharging,
+  "Manajemen Bengkel & Pendidikan": Wrench,
+  "Sistem Bahan Bakar": Fuel,
+  "Sistem Pendinginan": Snowflake,
+};
+
+export default async function BerandaPage() {
+  const supabase = createClient();
+  const tahunIni = new Date().getFullYear();
+
+  const [
+    { count: totalTA },
+    { count: taTahunIni },
+    { data: pembimbingRows },
+    { data: sdgRows },
+    { count: totalS1 },
+    { count: totalD3 },
+    { data: kategoriRows },
+    { data: terbaru },
+  ] = await Promise.all([
+    supabase.from("tugas_akhir").select("*", { count: "exact", head: true }).eq("status_verifikasi", "diterima"),
+    supabase.from("tugas_akhir").select("*", { count: "exact", head: true }).eq("status_verifikasi", "diterima").eq("tahun", tahunIni),
+    supabase.from("tugas_akhir").select("dosen_pembimbing_id, dosen_pembimbing_2_id").eq("status_verifikasi", "diterima"),
+    supabase.from("tugas_akhir").select("sdgs").eq("status_verifikasi", "diterima"),
+    supabase.from("tugas_akhir").select("*", { count: "exact", head: true }).eq("status_verifikasi", "diterima").eq("prodi", "s1_pend_otomotif"),
+    supabase.from("tugas_akhir").select("*", { count: "exact", head: true }).eq("status_verifikasi", "diterima").eq("prodi", "d3_otomotif"),
+    supabase.from("kategori_topik").select("id, nama_kategori"),
+    supabase
+      .from("tugas_akhir")
+      .select("id, judul, tahun, prodi, kategori_topik(nama_kategori), mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)")
+      .eq("status_verifikasi", "diterima")
+      .order("created_at", { ascending: false })
+      .limit(6),
+  ]);
+
+  const dosenAktif = new Set(
+    (pembimbingRows ?? []).flatMap((r) => [r.dosen_pembimbing_id, r.dosen_pembimbing_2_id]).filter(Boolean)
+  ).size;
+  const taSdgs = (sdgRows ?? []).filter((r) => (r.sdgs?.length ?? 0) > 0).length;
+
+  return (
+    <div>
+      {/* HERO */}
+      <section className="bg-primary-900 py-16 text-center text-white">
+        <div className="mx-auto max-w-2xl px-4">
+          <span className="rounded-full bg-primary-700 px-3 py-1 text-xs">Fakultas Teknik · Universitas Negeri Padang</span>
+          <h1 className="mt-4 text-3xl font-bold sm:text-4xl">
+            Repository Tugas Akhir <span className="text-accent-400">Teknik Otomotif UNP</span>
+          </h1>
+          <p className="mt-3 text-primary-200">
+            Platform digital terpusat untuk menemukan, menyimpan, dan mengeksplorasi seluruh karya ilmiah
+            mahasiswa S1 Pendidikan Teknik Otomotif dan D3 Teknik Otomotif.
+          </p>
+          <form action="/repositori" method="GET" className="mt-6 flex overflow-hidden rounded-lg">
+            <input
+              name="q"
+              placeholder="Cari judul, penulis, kata kunci, atau topik TA..."
+              className="flex-1 px-4 py-3 text-slate-800 focus:outline-none"
+            />
+            <button className="bg-accent-500 px-6 font-medium hover:bg-accent-600">Cari TA</button>
+          </form>
+        </div>
+      </section>
+
+      {/* STATISTIK */}
+      <section className="mx-auto -mt-8 max-w-6xl px-4">
+        <div className="grid gap-4 rounded-lg bg-white p-4 shadow sm:grid-cols-4">
+          <Stat label="Total TA Tersimpan" value={totalTA ?? 0} />
+          <Stat label={`TA Tahun ${tahunIni}`} value={taTahunIni ?? 0} />
+          <Stat label="Dosen Pembimbing Aktif" value={dosenAktif} />
+          <Stat label="TA Berkontribusi SDGs" value={taSdgs} />
+        </div>
+      </section>
+
+      {/* PROGRAM STUDI */}
+      <section className="mx-auto max-w-6xl px-4 py-10">
+        <h2 className="mb-4 text-lg font-semibold text-primary-800">Jelajahi Berdasarkan Program Studi</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ProdiCard label="S1 Pendidikan Teknik Otomotif" desc="Skripsi pendidikan kejuruan, pengembangan media pembelajaran, penelitian pedagogik otomotif" jumlah={totalS1 ?? 0} href="/repositori?prodi=s1_pend_otomotif" />
+          <ProdiCard label="D3 Teknik Otomotif" desc="Laporan Tugas Akhir vokasional, rancang bangun, analisis teknis, diagnosis kendaraan" jumlah={totalD3 ?? 0} href="/repositori?prodi=d3_otomotif" />
+        </div>
+      </section>
+
+      {/* KATEGORI */}
+      <section className="mx-auto max-w-6xl px-4 pb-10">
+        <h2 className="mb-4 text-lg font-semibold text-primary-800">Jelajahi Berdasarkan Kategori</h2>
+        <div className="grid gap-3 sm:grid-cols-4">
+          {(kategoriRows ?? []).map((k) => {
+            const Icon = IKON_KATEGORI[k.nama_kategori] ?? Cog;
+            return (
+              <a key={k.id} href={`/repositori?kategori=${k.id}`} className="rounded-lg border border-slate-200 p-4 hover:border-accent-400">
+                <Icon className="h-5 w-5 text-accent-500" />
+                <p className="mt-2 text-sm font-medium text-primary-800">{k.nama_kategori}</p>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* TERBARU */}
+      <section className="mx-auto max-w-6xl px-4 pb-10">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-primary-800">Tugas Akhir Terbaru</h2>
+          <a href="/repositori" className="text-sm text-accent-600">Lihat semua →</a>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {(terbaru ?? []).map((ta: any) => (
+            <a key={ta.id} href={`/ta/${ta.id}`} className="rounded-lg border border-slate-200 p-4 hover:border-accent-400">
+              <span className="mr-1 rounded bg-primary-100 px-1.5 py-0.5 text-xs font-medium text-primary-700">
+                {ta.prodi === "s1_pend_otomotif" ? "S1" : "D3"}
+              </span>
+              <span className="text-xs text-slate-500">{ta.kategori_topik?.nama_kategori ?? "Umum"}</span>
+              <p className="mt-1 font-medium text-primary-800">{ta.judul}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                {ta.mahasiswa?.nama_lengkap} · {ta.mahasiswa?.nim}
+              </p>
+            </a>
+          ))}
+          {(terbaru ?? []).length === 0 && <p className="text-sm text-slate-500">Belum ada TA yang terbit.</p>}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <p className="text-2xl font-bold text-primary-800">{value.toLocaleString("id-ID")}</p>
+      <p className="text-xs text-slate-500">{label}</p>
+    </div>
+  );
+}
+
+function ProdiCard({ label, desc, jumlah, href }: { label: string; desc: string; jumlah: number; href: string }) {
+  return (
+    <a href={href} className="rounded-lg border border-slate-200 p-5 hover:border-accent-400">
+      <p className="font-semibold text-primary-800">{label}</p>
+      <p className="mt-1 text-sm text-slate-500">{desc}</p>
+      <p className="mt-3 text-2xl font-bold text-accent-500">{jumlah}</p>
+      <p className="text-xs text-slate-500">koleksi TA tersedia</p>
+    </a>
+  );
+}
