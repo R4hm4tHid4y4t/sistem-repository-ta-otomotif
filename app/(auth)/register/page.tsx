@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function RegisterPage() {
   const supabase = createClient();
-  const [form, setForm] = useState({ nama_lengkap: "", email: "", password: "", role: "mahasiswa" });
+  const [form, setForm] = useState({ nama_lengkap: "", email: "", password: "", role: "mahasiswa", nim: "", nidn: "" });
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,18 +15,25 @@ export default function RegisterPage() {
     const { error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
-      options: { data: { nama_lengkap: form.nama_lengkap, role: form.role } },
+      options: {
+        data: {
+          nama_lengkap: form.nama_lengkap,
+          role: form.role,
+          nim: form.role === "mahasiswa" ? form.nim : null,
+          nidn: form.role === "dosen" ? form.nidn : null,
+        },
+      },
     });
     if (error) return setError(error.message);
     setDone(true);
   }
 
-  if (done) return <p>Registrasi berhasil, silakan cek email untuk verifikasi lalu masuk.</p>;
+  if (done) return <p className="mx-auto max-w-sm px-4 py-10 text-center">Registrasi berhasil, silakan cek email untuk verifikasi lalu masuk.</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-sm space-y-3">
+    <form onSubmit={handleSubmit} className="mx-auto max-w-sm space-y-3 px-4 py-10">
       <h1 className="text-xl font-semibold text-primary-800">Daftar Akun</h1>
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="rounded bg-red-50 p-2 text-sm text-red-600">{error}</p>}
       <input placeholder="Nama lengkap" value={form.nama_lengkap} onChange={(e) => setForm({ ...form, nama_lengkap: e.target.value })} className="w-full rounded border border-slate-300 px-3 py-2" required />
       <input type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full rounded border border-slate-300 px-3 py-2" required />
       <input type="password" placeholder="Kata sandi" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full rounded border border-slate-300 px-3 py-2" required />
@@ -34,7 +41,15 @@ export default function RegisterPage() {
         <option value="mahasiswa">Mahasiswa</option>
         <option value="dosen">Dosen</option>
       </select>
-      <button className="w-full rounded bg-primary-600 py-2 text-white">Daftar</button>
+      {form.role === "mahasiswa" ? (
+        <input placeholder="NIM" value={form.nim} onChange={(e) => setForm({ ...form, nim: e.target.value })} className="w-full rounded border border-slate-300 px-3 py-2" required />
+      ) : (
+        <input placeholder="NIDN" value={form.nidn} onChange={(e) => setForm({ ...form, nidn: e.target.value })} className="w-full rounded border border-slate-300 px-3 py-2" required />
+      )}
+      <button className="w-full rounded bg-accent-500 py-2 text-white hover:bg-accent-600">Daftar</button>
+      <p className="text-sm">
+        Sudah punya akun? <a href="/login" className="text-accent-600 hover:underline">Masuk</a>
+      </p>
     </form>
   );
 }

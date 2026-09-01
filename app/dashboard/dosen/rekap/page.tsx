@@ -20,12 +20,18 @@ export default async function RekapDosenPage() {
 
   return (
     <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-primary-800">Rekap TA</h1>
+        <a href="/api/ekspor/rekap-dosen" className="rounded bg-accent-500 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600">
+          ⬇ Ekspor Excel
+        </a>
+      </div>
       <div>
-        <h1 className="mb-4 text-xl font-semibold text-primary-800">TA yang Dibimbing</h1>
+        <h2 className="mb-4 text-lg font-semibold text-primary-800">TA yang Dibimbing</h2>
         <RekapTable rows={bimbingan} />
       </div>
       <div>
-        <h1 className="mb-4 text-xl font-semibold text-primary-800">TA yang Diuji</h1>
+        <h2 className="mb-4 text-lg font-semibold text-primary-800">TA yang Diuji</h2>
         <RekapTable rows={diuji} />
       </div>
     </div>

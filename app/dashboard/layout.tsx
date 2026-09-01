@@ -6,7 +6,6 @@ const MENU: Record<string, { href: string; label: string }[]> = {
     { href: "/dashboard/mahasiswa", label: "Ringkasan" },
     { href: "/dashboard/mahasiswa/upload", label: "Unggah TA" },
     { href: "/dashboard/mahasiswa/status", label: "TA Saya" },
-    { href: "/dashboard/mahasiswa/kompre", label: "Daftar Ujian Kompre" },
   ],
   dosen: [
     { href: "/dashboard/dosen", label: "Ringkasan" },
@@ -16,8 +15,8 @@ const MENU: Record<string, { href: string; label: string }[]> = {
     { href: "/dashboard/admin", label: "Ringkasan" },
     { href: "/dashboard/admin/verifikasi", label: "Kelola TA" },
     { href: "/dashboard/admin/pengguna", label: "Kelola Pengguna" },
-    { href: "/dashboard/admin/master-data", label: "Master Data" },
-    { href: "/dashboard/admin/kompre", label: "Pendaftar Kompre & Penguji" },
+    { href: "/dashboard/admin/master-data", label: "Master Dosen" },
+    { href: "/dashboard/admin/kategori", label: "Kategori & SDGs" },
     { href: "/dashboard/admin/log", label: "Log Aktivitas" },
   ],
 };
