@@ -25,7 +25,7 @@ export function StatistikChartsClient({
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-slate-200 p-4">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <p className="mb-3 text-sm font-medium text-primary-800">Jumlah TA per Tahun & Program Studi</p>
           {totalTA === 0 ? (
             <p className="text-sm text-slate-400">Belum ada data.</p>
@@ -44,7 +44,7 @@ export function StatistikChartsClient({
           )}
         </div>
 
-        <div className="rounded-lg border border-slate-200 p-4">
+        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <p className="mb-3 text-sm font-medium text-primary-800">Distribusi per Kategori / Topik</p>
           {perKategori.length === 0 ? (
             <p className="text-sm text-slate-400">Belum ada data.</p>
@@ -66,7 +66,7 @@ export function StatistikChartsClient({
 
       {lengkap && (
         <>
-          <div className="rounded-lg border border-slate-200 p-4">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <p className="mb-3 text-sm font-medium text-primary-800">Jumlah TA Dibimbing per Dosen Pembimbing</p>
             {perPembimbing.length === 0 ? (
               <p className="text-sm text-slate-400">Belum ada data.</p>
@@ -83,7 +83,7 @@ export function StatistikChartsClient({
             )}
           </div>
 
-          <div className="rounded-lg border border-slate-200 p-4">
+          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <p className="mb-3 text-sm font-medium text-primary-800">Jumlah TA Diuji per Dosen Penguji</p>
             {perPenguji.length === 0 ? (
               <p className="text-sm text-slate-400">Belum ada data.</p>
@@ -102,7 +102,7 @@ export function StatistikChartsClient({
         </>
       )}
 
-      <div className="rounded-lg border border-slate-200 p-4">
+      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
         <p className="mb-3 text-sm font-medium text-primary-800">Kontribusi TA terhadap SDGs</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {DAFTAR_SDGS.map((s) => (

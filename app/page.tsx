@@ -1,15 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { Flame, Zap, Cog, Truck, BatteryCharging, Wrench, Fuel, Snowflake } from "lucide-react";
 
-const IKON_KATEGORI: Record<string, React.ElementType> = {
-  "Motor Bakar": Flame,
-  "Kelistrikan Otomotif": Zap,
-  "Sasis & Pemindah Tenaga": Cog,
-  "Alat Berat": Truck,
-  "Kendaraan Listrik (EV)": BatteryCharging,
-  "Manajemen Bengkel & Pendidikan": Wrench,
-  "Sistem Bahan Bakar": Fuel,
-  "Sistem Pendinginan": Snowflake,
+const KATEGORI_META: Record<string, { icon: React.ElementType; warna: string }> = {
+  "Motor Bakar": { icon: Flame, warna: "#EF4444" },
+  "Kelistrikan Otomotif": { icon: Zap, warna: "#EAB308" },
+  "Sasis & Pemindah Tenaga": { icon: Cog, warna: "#6B7280" },
+  "Alat Berat": { icon: Truck, warna: "#92400E" },
+  "Kendaraan Listrik (EV)": { icon: BatteryCharging, warna: "#16A34A" },
+  "Manajemen Bengkel & Pendidikan": { icon: Wrench, warna: "#2563EB" },
+  "Sistem Bahan Bakar": { icon: Fuel, warna: "#C2410C" },
+  "Sistem Pendinginan": { icon: Snowflake, warna: "#0EA5E9" },
 };
 
 export default async function BerandaPage() {
@@ -49,9 +49,9 @@ export default async function BerandaPage() {
   return (
     <div>
       {/* HERO */}
-      <section className="bg-primary-900 py-16 text-center text-white">
+      <section className="bg-gradient-to-b from-primary-900 to-primary-700 py-16 text-center text-white">
         <div className="mx-auto max-w-2xl px-4">
-          <span className="rounded-full bg-primary-700 px-3 py-1 text-xs">Fakultas Teknik · Universitas Negeri Padang</span>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs">Fakultas Teknik · Universitas Negeri Padang</span>
           <h1 className="mt-4 text-3xl font-bold sm:text-4xl">
             Repository Tugas Akhir <span className="text-accent-400">Teknik Otomotif UNP</span>
           </h1>
@@ -59,11 +59,11 @@ export default async function BerandaPage() {
             Platform digital terpusat untuk menemukan, menyimpan, dan mengeksplorasi seluruh karya ilmiah
             mahasiswa S1 Pendidikan Teknik Otomotif dan D3 Teknik Otomotif.
           </p>
-          <form action="/repositori" method="GET" className="mt-6 flex overflow-hidden rounded-lg">
+          <form action="/repositori" method="GET" className="mt-6 flex overflow-hidden rounded-full shadow-lg">
             <input
               name="q"
               placeholder="Cari judul, penulis, kata kunci, atau topik TA..."
-              className="flex-1 px-4 py-3 text-slate-800 focus:outline-none"
+              className="flex-1 px-5 py-3 text-slate-800 focus:outline-none"
             />
             <button className="bg-accent-500 px-6 font-medium hover:bg-accent-600">Cari TA</button>
           </form>
@@ -72,7 +72,7 @@ export default async function BerandaPage() {
 
       {/* STATISTIK */}
       <section className="mx-auto -mt-8 max-w-6xl px-4">
-        <div className="grid gap-4 rounded-lg bg-white p-4 shadow sm:grid-cols-4">
+        <div className="grid gap-4 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-4">
           <Stat label="Total TA Tersimpan" value={totalTA ?? 0} />
           <Stat label={`TA Tahun ${tahunIni}`} value={taTahunIni ?? 0} />
           <Stat label="Dosen Pembimbing Aktif" value={dosenAktif} />
@@ -82,7 +82,7 @@ export default async function BerandaPage() {
 
       {/* PROGRAM STUDI */}
       <section className="mx-auto max-w-6xl px-4 py-10">
-        <h2 className="mb-4 text-lg font-semibold text-primary-800">Jelajahi Berdasarkan Program Studi</h2>
+        <h2 className="mb-4 text-lg font-heading font-semibold text-primary-800">Jelajahi Berdasarkan Program Studi</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <ProdiCard label="S1 Pendidikan Teknik Otomotif" desc="Skripsi pendidikan kejuruan, pengembangan media pembelajaran, penelitian pedagogik otomotif" jumlah={totalS1 ?? 0} href="/repositori?prodi=s1_pend_otomotif" />
           <ProdiCard label="D3 Teknik Otomotif" desc="Laporan Tugas Akhir vokasional, rancang bangun, analisis teknis, diagnosis kendaraan" jumlah={totalD3 ?? 0} href="/repositori?prodi=d3_otomotif" />
@@ -91,13 +91,18 @@ export default async function BerandaPage() {
 
       {/* KATEGORI */}
       <section className="mx-auto max-w-6xl px-4 pb-10">
-        <h2 className="mb-4 text-lg font-semibold text-primary-800">Jelajahi Berdasarkan Kategori</h2>
+        <h2 className="mb-4 text-lg font-heading font-semibold text-primary-800">Jelajahi Berdasarkan Kategori</h2>
         <div className="grid gap-3 sm:grid-cols-4">
           {(kategoriRows ?? []).map((k) => {
-            const Icon = IKON_KATEGORI[k.nama_kategori] ?? Cog;
+            const meta = KATEGORI_META[k.nama_kategori];
+            const Icon = meta?.icon ?? Cog;
             return (
-              <a key={k.id} href={`/repositori?kategori=${k.id}`} className="rounded-lg border border-slate-200 p-4 hover:border-accent-400">
-                <Icon className="h-5 w-5 text-accent-500" />
+              <a
+                key={k.id}
+                href={`/repositori?kategori=${k.id}`}
+                className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+              >
+                <Icon className="h-5 w-5" style={{ color: meta?.warna ?? "#64748B" }} strokeWidth={1.75} />
                 <p className="mt-2 text-sm font-medium text-primary-800">{k.nama_kategori}</p>
               </a>
             );
@@ -108,17 +113,17 @@ export default async function BerandaPage() {
       {/* TERBARU */}
       <section className="mx-auto max-w-6xl px-4 pb-10">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-primary-800">Tugas Akhir Terbaru</h2>
+          <h2 className="text-lg font-heading font-semibold text-primary-800">Tugas Akhir Terbaru</h2>
           <a href="/repositori" className="text-sm text-accent-600">Lihat semua →</a>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {(terbaru ?? []).map((ta: any) => (
-            <a key={ta.id} href={`/ta/${ta.id}`} className="rounded-lg border border-slate-200 p-4 hover:border-accent-400">
-              <span className="mr-1 rounded bg-primary-100 px-1.5 py-0.5 text-xs font-medium text-primary-700">
+            <a key={ta.id} href={`/ta/${ta.id}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+              <span className={`mr-1 rounded px-1.5 py-0.5 text-xs font-medium ${ta.prodi === "s1_pend_otomotif" ? "bg-primary-100 text-primary-700" : "bg-accent-100 text-accent-700"}`}>
                 {ta.prodi === "s1_pend_otomotif" ? "S1" : "D3"}
               </span>
               <span className="text-xs text-slate-500">{ta.kategori_topik?.nama_kategori ?? "Umum"}</span>
-              <p className="mt-1 font-medium text-primary-800">{ta.judul}</p>
+              <p className="mt-1 font-heading font-medium text-primary-800">{ta.judul}</p>
               <p className="mt-1 text-xs text-slate-500">
                 {ta.mahasiswa?.nama_lengkap} · {ta.mahasiswa?.nim}
               </p>
@@ -134,7 +139,7 @@ export default async function BerandaPage() {
 function Stat({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <p className="text-2xl font-bold text-primary-800">{value.toLocaleString("id-ID")}</p>
+      <p className="text-2xl font-heading font-bold text-primary-800">{value.toLocaleString("id-ID")}</p>
       <p className="text-xs text-slate-500">{label}</p>
     </div>
   );
@@ -142,10 +147,10 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 function ProdiCard({ label, desc, jumlah, href }: { label: string; desc: string; jumlah: number; href: string }) {
   return (
-    <a href={href} className="rounded-lg border border-slate-200 p-5 hover:border-accent-400">
-      <p className="font-semibold text-primary-800">{label}</p>
+    <a href={href} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+      <p className="font-heading font-semibold text-primary-800">{label}</p>
       <p className="mt-1 text-sm text-slate-500">{desc}</p>
-      <p className="mt-3 text-2xl font-bold text-accent-500">{jumlah}</p>
+      <p className="mt-3 text-2xl font-heading font-bold text-accent-500">{jumlah}</p>
       <p className="text-xs text-slate-500">koleksi TA tersedia</p>
     </a>
   );

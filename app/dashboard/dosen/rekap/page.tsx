@@ -22,7 +22,7 @@ export default async function RekapDosenPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-primary-800">Rekap TA</h1>
-        <a href="/api/ekspor/rekap-dosen" className="rounded bg-accent-500 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600">
+        <a href="/api/ekspor/rekap-dosen" className="rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600">
           ⬇ Ekspor Excel
         </a>
       </div>
@@ -40,7 +40,7 @@ export default async function RekapDosenPage() {
 
 function RekapTable({ rows }: { rows: { id: string; judul: string; tahun: number; status_verifikasi: string }[] }) {
   return (
-    <div className="overflow-x-auto rounded border border-slate-200">
+    <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
       <table className="w-full text-sm">
         <thead className="bg-slate-50 text-left">
           <tr>
@@ -51,14 +51,14 @@ function RekapTable({ rows }: { rows: { id: string; judul: string; tahun: number
         </thead>
         <tbody>
           {rows.map((ta) => (
-            <tr key={ta.id} className="border-t">
+            <tr key={ta.id} className="border-t border-slate-100">
               <td className="p-3 font-medium text-primary-800">
                 <a href={`/ta/${ta.id}`} className="hover:underline">{ta.judul}</a>
               </td>
               <td className="p-3">{ta.tahun}</td>
               <td className="p-3">
                 {ta.status_verifikasi === "ditolak" ? (
-                  <span className="rounded bg-red-100 px-2 py-0.5 text-xs text-red-700">Ditarik</span>
+                  <span className="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Ditarik</span>
                 ) : (
                   <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Tayang</span>
                 )}

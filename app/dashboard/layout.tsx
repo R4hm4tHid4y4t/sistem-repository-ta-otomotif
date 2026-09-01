@@ -13,6 +13,7 @@ const MENU: Record<string, { href: string; label: string }[]> = {
   ],
   admin: [
     { href: "/dashboard/admin", label: "Ringkasan" },
+    { href: "/dashboard/admin/dashboard", label: "Dashboard" },
     { href: "/dashboard/admin/verifikasi", label: "Kelola TA" },
     { href: "/dashboard/admin/pengguna", label: "Kelola Pengguna" },
     { href: "/dashboard/admin/master-data", label: "Master Dosen" },
@@ -34,14 +35,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const menu = MENU[profile.role] ?? [];
 
   return (
-    <div className="grid grid-cols-[200px_1fr] gap-6">
-      <aside className="space-y-1 border-r border-slate-200 pr-4">
-        <p className="mb-3 text-sm font-medium text-slate-500">Halo, {profile.nama_lengkap}</p>
-        {menu.map((item) => (
-          <a key={item.href} href={item.href} className="block rounded px-2 py-1.5 text-sm hover:bg-primary-50">
-            {item.label}
-          </a>
-        ))}
+    <div className="mx-auto grid max-w-6xl grid-cols-[220px_1fr] gap-6 px-4 py-8">
+      <aside className="h-fit rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+        <p className="mb-3 px-2 text-sm font-medium text-slate-500">Halo, {profile.nama_lengkap}</p>
+        <nav className="space-y-1">
+          {menu.map((item) => (
+            <a key={item.href} href={item.href} className="block rounded-lg px-3 py-2 text-sm text-primary-800 hover:bg-primary-50">
+              {item.label}
+            </a>
+          ))}
+        </nav>
       </aside>
       <section>{children}</section>
     </div>

@@ -1,4 +1,3 @@
-// Kelola TA — admin bisa takedown TA yang sudah tayang (bukan lagi antrean persetujuan)
 import { createClient } from "@/lib/supabase/server";
 import { verifikasiTugasAkhir } from "@/lib/actions/ta";
 
@@ -12,7 +11,7 @@ export default async function KelolaTAPage() {
   return (
     <div>
       <h1 className="mb-4 text-xl font-semibold text-primary-800">Kelola TA</h1>
-      <div className="overflow-x-auto rounded border border-slate-200">
+      <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left">
             <tr>
@@ -25,7 +24,7 @@ export default async function KelolaTAPage() {
           </thead>
           <tbody>
             {(daftarTA ?? []).map((ta: any) => (
-              <tr key={ta.id} className="border-t">
+              <tr key={ta.id} className="border-t border-slate-100">
                 <td className="p-3 font-medium text-primary-800">
                   <a href={`/ta/${ta.id}`} className="hover:underline">{ta.judul}</a>
                 </td>
@@ -33,7 +32,7 @@ export default async function KelolaTAPage() {
                 <td className="p-3">{ta.tahun}</td>
                 <td className="p-3">
                   {ta.status_verifikasi === "ditolak" ? (
-                    <span className="rounded bg-red-100 px-2 py-0.5 text-xs text-red-700">Ditarik</span>
+                    <span className="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Ditarik</span>
                   ) : (
                     <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Tayang</span>
                   )}
@@ -45,7 +44,7 @@ export default async function KelolaTAPage() {
                     </form>
                   ) : (
                     <form action={verifikasiTugasAkhir.bind(null, ta.id, "ditolak", "Ditarik oleh admin")}>
-                      <button className="text-red-600 hover:underline">Takedown</button>
+                      <button className="font-medium text-red-600 hover:underline">Takedown</button>
                     </form>
                   )}
                 </td>

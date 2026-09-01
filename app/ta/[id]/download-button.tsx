@@ -27,7 +27,7 @@ export function DownloadTAButton({ taId, label = "Unduh PDF Lengkap" }: { taId: 
       >
         {isPending ? "Menyiapkan file..." : label}
       </button>
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-amber-700">{error}</p>}
     </div>
   );
 }

@@ -23,13 +23,13 @@ export default async function TASayaPage({
       )}
       <ul className="space-y-2">
         {(daftarTA ?? []).map((ta) => (
-          <li key={ta.id} className="flex items-center justify-between rounded border p-3">
+          <li key={ta.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <div>
               <a href={`/ta/${ta.id}`} className="font-medium text-primary-700 hover:underline">{ta.judul}</a>
               <p className="text-sm text-slate-500">{ta.tahun}</p>
             </div>
             {ta.status_verifikasi === "ditolak" ? (
-              <span className="rounded bg-red-100 px-2 py-0.5 text-xs text-red-700">Ditarik oleh admin</span>
+              <span className="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Ditarik oleh admin</span>
             ) : (
               <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Tayang</span>
             )}

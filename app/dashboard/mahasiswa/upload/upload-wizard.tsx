@@ -92,7 +92,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
   }
 
   return (
-    <div className="mt-6 rounded-lg border border-slate-200 p-6">
+    <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       {/* STEPPER */}
       <div className="mb-6 flex items-center gap-2 text-sm">
         {LANGKAH.map((label, i) => {
@@ -115,7 +115,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
         })}
       </div>
 
-      {error && <p className="mb-4 rounded bg-red-50 p-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mb-4 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">{error}</p>}
 
       {/* STEP 1 */}
       {langkah === 1 && (
@@ -231,7 +231,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
             Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD pembimbing) di dalamnya.
           </p>
           <div className="flex justify-between">
-            <button onClick={() => setLangkah(1)} className="rounded border border-slate-300 px-5 py-2 text-slate-600">← Kembali</button>
+            <button onClick={() => setLangkah(1)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
             <button
               onClick={() => (file ? setLangkah(3) : setError("File PDF wajib diunggah."))}
               className="rounded bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
@@ -260,7 +260,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
             Dengan menekan "Unggah & Terbitkan", TA Anda akan <strong>langsung tayang di repositori</strong> dan dapat diakses oleh seluruh civitas akademika.
           </p>
           <div className="flex justify-between">
-            <button onClick={() => setLangkah(2)} className="rounded border border-slate-300 px-5 py-2 text-slate-600">← Kembali</button>
+            <button onClick={() => setLangkah(2)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
             <button
               onClick={handleSubmit}
               disabled={isPending}

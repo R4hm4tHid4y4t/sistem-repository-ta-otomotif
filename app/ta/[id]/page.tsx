@@ -48,16 +48,16 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
       <div className="grid gap-6 sm:grid-cols-[1fr_280px]">
         <div>
           <div className="mb-2 flex gap-2">
-            <span className="rounded bg-primary-100 px-2 py-1 text-xs font-medium text-primary-700">
-              {ta.prodi === "s1_pend_otomotif" ? "S1 Pend. Teknik Otomotif" : "D3 Teknik Otomotif"}
+            <span className={`rounded px-2 py-1 text-xs font-medium ${ta.prodi === "s1_pend_otomotif" ? "bg-primary-100 text-primary-700" : "bg-accent-100 text-accent-700"}`}>
+              {ta.prodi === "s1_pend_otomotif" ? "S1" : "D3"}
             </span>
-            <span className="rounded bg-accent-50 px-2 py-1 text-xs font-medium text-accent-600">
+            <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
               {ta.kategori_topik?.nama_kategori ?? "Umum"}
             </span>
           </div>
           <h1 className="text-2xl font-semibold text-primary-800">{ta.judul}</h1>
 
-          <div className="mt-4 grid gap-3 rounded-lg border border-slate-200 p-4 text-sm sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
             <Info label="Penulis" value={ta.mahasiswa?.nama_lengkap} />
             <Info label="NIM" value={ta.mahasiswa?.nim} />
             <Info label="Tahun Lulus" value={String(ta.tahun)} />
@@ -88,13 +88,13 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             </div>
           )}
 
-          <div className="mt-6 rounded-lg border border-slate-200 p-4">
+          <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <p className="mb-2 font-medium text-primary-800">Abstrak</p>
-            <p className="text-sm text-slate-700">{ta.abstrak}</p>
+            <p className="text-sm leading-relaxed text-slate-700">{ta.abstrak}</p>
           </div>
 
           {ta.kata_kunci?.length > 0 && (
-            <div className="mt-4 rounded-lg border border-slate-200 p-4">
+            <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
               <p className="mb-2 font-medium text-primary-800">Kata Kunci</p>
               <div className="flex flex-wrap gap-2">
                 {ta.kata_kunci.map((k: string) => (
@@ -104,12 +104,12 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             </div>
           )}
 
-          <div className="mt-4 rounded-lg border border-slate-200 p-6">
+          <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <p className="font-medium text-primary-800">Pratinjau Dokumen</p>
               {bolehUnduh && <DownloadTAButton taId={ta.id} label="Unduh PDF" />}
             </div>
-            <div className="flex flex-col items-center justify-center rounded border border-dashed border-slate-300 py-16 text-center text-sm text-slate-400">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 py-16 text-center text-sm text-slate-400">
               <span className="text-3xl">📄</span>
               <p className="mt-2">
                 {bolehUnduh ? 'Klik "Unduh PDF" untuk membuka dokumen' : "Pratinjau memerlukan akun mahasiswa/dosen"}
@@ -119,20 +119,20 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-lg border border-slate-200 p-4">
+          <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <p className="mb-2 text-sm font-medium text-primary-800">Aksi</p>
             {bolehUnduh ? (
               <DownloadTAButton taId={ta.id} />
             ) : (
               <>
                 <p className="mb-3 text-xs text-slate-500">Login sebagai mahasiswa atau dosen untuk mengunduh dokumen.</p>
-                <a href="/login" className="block rounded bg-slate-200 px-4 py-2 text-center text-sm text-slate-600">Masuk</a>
+                <a href="/login" className="block rounded-lg border border-primary-600 px-4 py-2 text-center text-sm font-medium text-primary-700 hover:bg-primary-50">Masuk</a>
               </>
             )}
           </div>
 
           {(terkait ?? []).length > 0 && (
-            <div className="rounded-lg border border-slate-200 p-4">
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="mb-2 text-sm font-medium text-primary-800">TA Terkait</p>
               <ul className="space-y-2 text-sm">
                 {(terkait ?? []).map((t: any) => (

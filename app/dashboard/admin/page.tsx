@@ -27,15 +27,20 @@ export default async function RingkasanAdminPage() {
         <StatBox label="Dosen Terdaftar" value={dosenCount ?? 0} />
       </div>
 
-      <div className="mt-6 rounded-lg border border-slate-200 p-4">
+      <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-medium text-primary-800">Aktivitas Terbaru</p>
           <a href="/dashboard/admin/log" className="text-xs text-accent-600 hover:underline">Lihat semua →</a>
         </div>
         <ul className="space-y-1 text-sm">
           {(logTerbaru ?? []).map((l, i) => (
-            <li key={i} className="border-t py-1.5 first:border-t-0">
-              <span className="text-xs text-slate-400">{new Date(l.created_at).toLocaleString("id-ID")}</span> — {l.deskripsi ?? l.aksi}
+            <li key={i} className="flex items-center justify-between border-t py-1.5 first:border-t-0">
+              <span>
+                <span className="text-xs text-slate-400">{new Date(l.created_at).toLocaleString("id-ID")}</span> — {l.deskripsi ?? l.aksi}
+              </span>
+              {l.aksi === "upload_ta" && (
+                <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Tayang</span>
+              )}
             </li>
           ))}
           {(logTerbaru ?? []).length === 0 && <li className="text-slate-500">Belum ada aktivitas.</li>}
@@ -47,7 +52,7 @@ export default async function RingkasanAdminPage() {
 
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-4">
+    <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
       <p className="text-2xl font-bold text-primary-800">{value}</p>
       <p className="text-xs text-slate-500">{label}</p>
     </div>

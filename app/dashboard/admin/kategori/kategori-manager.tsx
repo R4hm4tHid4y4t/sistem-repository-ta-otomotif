@@ -28,7 +28,7 @@ export function KategoriManager({ kategoriList }: { kategoriList: Kategori[] }) 
           editId === k.id ? (
             <EditRow key={k.id} kategori={k} onClose={() => setEditId(null)} />
           ) : (
-            <li key={k.id} className="rounded border border-slate-200 p-3">
+            <li key={k.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-medium text-primary-800">{k.nama_kategori}</p>

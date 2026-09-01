@@ -18,7 +18,7 @@ export default async function KelolaPenggunaPage() {
         <StatBox label="Dosen terdaftar" value={jumlah("dosen")} />
         <StatBox label="Admin terdaftar" value={jumlah("admin")} />
       </div>
-      <div className="overflow-x-auto rounded border border-slate-200">
+      <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left">
             <tr>
@@ -30,7 +30,7 @@ export default async function KelolaPenggunaPage() {
           </thead>
           <tbody>
             {(users ?? []).map((u) => (
-              <tr key={u.id} className="border-t">
+              <tr key={u.id} className="border-t border-slate-100">
                 <td className="p-3 font-medium text-primary-800">{u.nama_lengkap || "-"}</td>
                 <td className="p-3">{u.email}</td>
                 <td className="p-3">{u.nim || u.nidn || "-"}</td>
@@ -49,7 +49,7 @@ export default async function KelolaPenggunaPage() {
 
 function StatBox({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-slate-200 p-4">
+    <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
       <p className="text-2xl font-bold text-primary-800">{value}</p>
       <p className="text-xs text-slate-500">{label}</p>
     </div>
