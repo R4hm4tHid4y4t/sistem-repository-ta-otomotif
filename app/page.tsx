@@ -1,7 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
-import { KATEGORI_META } from "@/lib/kategori-icons";
+import Link from "next/link";
 import { TACard } from "@/components/ta-card";
-import { Cog } from "lucide-react";
+import { Flame, Zap, Cog, Truck, BatteryCharging, Wrench, Fuel, Snowflake } from "lucide-react";
+
+const KATEGORI_META: Record<string, { icon: React.ElementType; warna: string }> = {
+  "Motor Bakar": { icon: Flame, warna: "#EF4444" },
+  "Kelistrikan Otomotif": { icon: Zap, warna: "#EAB308" },
+  "Sasis & Pemindah Tenaga": { icon: Cog, warna: "#6B7280" },
+  "Alat Berat": { icon: Truck, warna: "#92400E" },
+  "Kendaraan Listrik (EV)": { icon: BatteryCharging, warna: "#16A34A" },
+  "Manajemen Bengkel & Pendidikan": { icon: Wrench, warna: "#2563EB" },
+  "Sistem Bahan Bakar": { icon: Fuel, warna: "#C2410C" },
+  "Sistem Pendinginan": { icon: Snowflake, warna: "#0EA5E9" },
+};
 
 export default async function BerandaPage() {
   const supabase = createClient();
@@ -27,7 +38,7 @@ export default async function BerandaPage() {
     supabase
       .from("tugas_akhir")
       .select(`
-        id, judul, tahun, prodi, sdgs,
+        id, judul, tahun, prodi, created_at, sdgs,
         kategori_topik(nama_kategori),
         mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim),
         pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
@@ -69,7 +80,7 @@ export default async function BerandaPage() {
       </section>
 
       <section className="mx-auto -mt-8 max-w-6xl px-4">
-        <div className="grid gap-4 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-4">
+        <div className="grid gap-4 rounded-2xl bg-white p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] sm:grid-cols-4">
           <Stat label="Total TA Tersimpan" value={totalTA ?? 0} />
           <Stat label={`TA Tahun ${tahunIni}`} value={taTahunIni ?? 0} />
           <Stat label="Dosen Pembimbing Aktif" value={dosenAktif} />
@@ -92,14 +103,14 @@ export default async function BerandaPage() {
             const meta = KATEGORI_META[k.nama_kategori];
             const Icon = meta?.icon ?? Cog;
             return (
-              <a
+              <Link
                 key={k.id}
                 href={`/repositori?kategori=${k.id}`}
-                className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                className="rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.1)]"
               >
                 <Icon className="h-5 w-5" style={{ color: meta?.warna ?? "#64748B" }} strokeWidth={1.75} />
                 <p className="mt-2 text-sm font-medium text-primary-800">{k.nama_kategori}</p>
-              </a>
+              </Link>
             );
           })}
         </div>
@@ -108,7 +119,7 @@ export default async function BerandaPage() {
       <section className="mx-auto max-w-6xl px-4 pb-10">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-heading font-semibold text-primary-800">Tugas Akhir Terbaru</h2>
-          <a href="/repositori" className="text-sm text-accent-600">Lihat semua →</a>
+          <Link href="/repositori" className="text-sm text-accent-600 hover:underline">Lihat semua →</Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {(terbaru ?? []).map((ta: any) => (
@@ -132,11 +143,11 @@ function Stat({ label, value }: { label: string; value: number }) {
 
 function ProdiCard({ label, desc, jumlah, href }: { label: string; desc: string; jumlah: number; href: string }) {
   return (
-    <a href={href} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <Link href={href} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_25px_-5px_rgba(0,0,0,0.1)]">
       <p className="font-heading font-semibold text-primary-800">{label}</p>
       <p className="mt-1 text-sm text-slate-500">{desc}</p>
       <p className="mt-3 text-2xl font-heading font-bold text-accent-500">{jumlah}</p>
       <p className="text-xs text-slate-500">koleksi TA tersedia</p>
-    </a>
+    </Link>
   );
 }
