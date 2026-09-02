@@ -1,16 +1,38 @@
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
+import { TACard } from "@/components/ta-card";
+import { FilterSelect } from "./filter-select";
+import { DAFTAR_SDGS } from "@/lib/sdgs";
+
+type SP = Record<string, string | undefined>;
+
+function hrefFor(searchParams: SP, changes: SP) {
+  const merged = { ...searchParams, ...changes };
+  const params = new URLSearchParams();
+  Object.entries(merged).forEach(([k, v]) => {
+    if (v) params.set(k, v);
+  });
+  const qs = params.toString();
+  return qs ? `/repositori?${qs}` : "/repositori";
+}
 
 export default async function RepositoriPage({
   searchParams,
 }: {
-  searchParams: { q?: string; prodi?: string; kategori?: string; tahun?: string };
+  searchParams: { q?: string; prodi?: string; kategori?: string; tahun?: string; pembimbing?: string; penguji?: string; sdg?: string };
 }) {
   const supabase = createClient();
 
   let query = supabase
     .from("tugas_akhir")
-    .select("id, judul, tahun, prodi, kategori_topik(nama_kategori), mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)")
+    .select(`
+      id, judul, tahun, prodi, sdgs,
+      kategori_topik(nama_kategori),
+      mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim),
+      pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
+      pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
+      penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
+      penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap)
+    `)
     .eq("status_verifikasi", "diterima")
     .order("created_at", { ascending: false });
 
@@ -18,12 +40,25 @@ export default async function RepositoriPage({
   if (searchParams.prodi) query = query.eq("prodi", searchParams.prodi);
   if (searchParams.kategori) query = query.eq("kategori_id", searchParams.kategori);
   if (searchParams.tahun) query = query.eq("tahun", Number(searchParams.tahun));
+  if (searchParams.pembimbing) {
+    query = query.or(`dosen_pembimbing_id.eq.${searchParams.pembimbing},dosen_pembimbing_2_id.eq.${searchParams.pembimbing}`);
+  }
+  if (searchParams.penguji) {
+    query = query.or(`dosen_penguji_1_id.eq.${searchParams.penguji},dosen_penguji_2_id.eq.${searchParams.penguji}`);
+  }
+  if (searchParams.sdg) query = query.contains("sdgs", [Number(searchParams.sdg)]);
 
-  // Paralelkan pengambilan Data TA dan Kategori Topik
-  const [{ data: daftarTA }, { data: kategoriList }] = await Promise.all([
-    query,
-    supabase.from("kategori_topik").select("id, nama_kategori"),
+  const { data: daftarTA } = await query;
+
+  const [{ data: kategoriList }, { data: dosenList }, { data: tahunRows }] = await Promise.all([
+    supabase.from("kategori_topik").select("id, nama_kategori").order("nama_kategori"),
+    supabase.from("profiles").select("id, nama_lengkap").eq("role", "dosen").order("nama_lengkap"),
+    supabase.from("tugas_akhir").select("tahun").eq("status_verifikasi", "diterima"),
   ]);
+
+  const tahunOptions = Array.from(new Set((tahunRows ?? []).map((r) => r.tahun))).sort((a, b) => b - a);
+  const linkClass = (active: boolean) =>
+    `block py-0.5 ${active ? "font-medium text-accent-600" : "text-slate-600 hover:text-accent-600"}`;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -35,20 +70,38 @@ export default async function RepositoriPage({
         <button className="bg-accent-500 px-5 font-medium text-white hover:bg-accent-600">Cari</button>
       </form>
 
-      <div className="mt-6 grid gap-6 sm:grid-cols-[220px_1fr]">
+      <div className="mt-6 grid gap-6 sm:grid-cols-[240px_1fr]">
         <aside className="h-fit space-y-4 rounded-2xl border border-slate-100 bg-white p-4 text-sm shadow-sm">
           <div>
             <p className="mb-1 font-medium text-primary-800">Program Studi</p>
-            <Link href="/repositori" className="block py-0.5 text-slate-600 hover:text-accent-600">Semua</Link>
-            <Link href="/repositori?prodi=s1_pend_otomotif" className="block py-0.5 text-slate-600 hover:text-accent-600">S1 Pend. Teknik Otomotif</Link>
-            <Link href="/repositori?prodi=d3_otomotif" className="block py-0.5 text-slate-600 hover:text-accent-600">D3 Teknik Otomotif</Link>
+            <a href={hrefFor(searchParams, { prodi: undefined })} className={linkClass(!searchParams.prodi)}>Semua</a>
+            <a href={hrefFor(searchParams, { prodi: "s1_pend_otomotif" })} className={linkClass(searchParams.prodi === "s1_pend_otomotif")}>S1 Pend. Teknik Otomotif</a>
+            <a href={hrefFor(searchParams, { prodi: "d3_otomotif" })} className={linkClass(searchParams.prodi === "d3_otomotif")}>D3 Teknik Otomotif</a>
           </div>
+
+          <FilterSelect name="tahun" label="Tahun" placeholder="Semua tahun" options={tahunOptions.map((t) => ({ value: String(t), label: String(t) }))} />
+          <FilterSelect name="kategori" label="Kategori / Topik" placeholder="Semua kategori" options={(kategoriList ?? []).map((k) => ({ value: k.id, label: k.nama_kategori }))} />
+          <FilterSelect name="pembimbing" label="Dosen Pembimbing" placeholder="Semua dosen pembimbing" options={(dosenList ?? []).map((d) => ({ value: d.id, label: d.nama_lengkap }))} />
+          <FilterSelect name="penguji" label="Dosen Penguji" placeholder="Semua dosen penguji" options={(dosenList ?? []).map((d) => ({ value: d.id, label: d.nama_lengkap }))} />
+
           <div>
-            <p className="mb-1 font-medium text-primary-800">Kategori / Topik</p>
-            <Link href="/repositori" className="block py-0.5 text-slate-600 hover:text-accent-600">Semua kategori</Link>
-            {(kategoriList ?? []).map((k) => (
-              <Link key={k.id} href={`/repositori?kategori=${k.id}`} className="block py-0.5 text-slate-600 hover:text-accent-600">{k.nama_kategori}</Link>
-            ))}
+            <p className="mb-1 font-medium text-primary-800">Tag SDGs</p>
+            <div className="flex flex-wrap gap-1">
+              {DAFTAR_SDGS.map((s) => {
+                const active = searchParams.sdg === String(s.nomor);
+                return (
+                  <a
+                    key={s.nomor}
+                    href={hrefFor(searchParams, { sdg: active ? undefined : String(s.nomor) })}
+                    style={active ? { backgroundColor: s.warna } : undefined}
+                    className={`rounded px-1.5 py-0.5 text-xs font-medium ${active ? "text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                    title={s.nama}
+                  >
+                    {s.nomor}
+                  </a>
+                );
+              })}
+            </div>
           </div>
         </aside>
 
@@ -56,14 +109,7 @@ export default async function RepositoriPage({
           <p className="mb-3 text-sm text-slate-500">{(daftarTA ?? []).length} TA ditemukan</p>
           <div className="grid gap-4 sm:grid-cols-2">
             {(daftarTA ?? []).map((ta: any) => (
-              <Link key={ta.id} href={`/ta/${ta.id}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-                <span className={`mr-1 rounded px-1.5 py-0.5 text-xs font-medium ${ta.prodi === "s1_pend_otomotif" ? "bg-primary-100 text-primary-700" : "bg-accent-100 text-accent-700"}`}>
-                  {ta.prodi === "s1_pend_otomotif" ? "S1" : "D3"}
-                </span>
-                <span className="text-xs text-slate-500">{ta.kategori_topik?.nama_kategori ?? "Umum"}</span>
-                <p className="mt-1 font-medium text-primary-800">{ta.judul}</p>
-                <p className="mt-1 text-xs text-slate-500">{ta.mahasiswa?.nama_lengkap} · {ta.mahasiswa?.nim}</p>
-              </Link>
+              <TACard key={ta.id} ta={ta} />
             ))}
             {(daftarTA ?? []).length === 0 && <p className="text-sm text-slate-500">Belum ada TA yang cocok.</p>}
           </div>

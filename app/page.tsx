@@ -1,16 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { Flame, Zap, Cog, Truck, BatteryCharging, Wrench, Fuel, Snowflake } from "lucide-react";
-
-const KATEGORI_META: Record<string, { icon: React.ElementType; warna: string }> = {
-  "Motor Bakar": { icon: Flame, warna: "#EF4444" },
-  "Kelistrikan Otomotif": { icon: Zap, warna: "#EAB308" },
-  "Sasis & Pemindah Tenaga": { icon: Cog, warna: "#6B7280" },
-  "Alat Berat": { icon: Truck, warna: "#92400E" },
-  "Kendaraan Listrik (EV)": { icon: BatteryCharging, warna: "#16A34A" },
-  "Manajemen Bengkel & Pendidikan": { icon: Wrench, warna: "#2563EB" },
-  "Sistem Bahan Bakar": { icon: Fuel, warna: "#C2410C" },
-  "Sistem Pendinginan": { icon: Snowflake, warna: "#0EA5E9" },
-};
+import { KATEGORI_META } from "@/lib/kategori-icons";
+import { TACard } from "@/components/ta-card";
+import { Cog } from "lucide-react";
 
 export default async function BerandaPage() {
   const supabase = createClient();
@@ -35,7 +26,15 @@ export default async function BerandaPage() {
     supabase.from("kategori_topik").select("id, nama_kategori"),
     supabase
       .from("tugas_akhir")
-      .select("id, judul, tahun, prodi, kategori_topik(nama_kategori), mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)")
+      .select(`
+        id, judul, tahun, prodi, sdgs,
+        kategori_topik(nama_kategori),
+        mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim),
+        pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
+        pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
+        penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
+        penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap)
+      `)
       .eq("status_verifikasi", "diterima")
       .order("created_at", { ascending: false })
       .limit(6),
@@ -48,7 +47,6 @@ export default async function BerandaPage() {
 
   return (
     <div>
-      {/* HERO */}
       <section className="bg-gradient-to-b from-primary-900 to-primary-700 py-16 text-center text-white">
         <div className="mx-auto max-w-2xl px-4">
           <span className="rounded-full bg-white/10 px-3 py-1 text-xs">Fakultas Teknik · Universitas Negeri Padang</span>
@@ -70,7 +68,6 @@ export default async function BerandaPage() {
         </div>
       </section>
 
-      {/* STATISTIK */}
       <section className="mx-auto -mt-8 max-w-6xl px-4">
         <div className="grid gap-4 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-4">
           <Stat label="Total TA Tersimpan" value={totalTA ?? 0} />
@@ -80,7 +77,6 @@ export default async function BerandaPage() {
         </div>
       </section>
 
-      {/* PROGRAM STUDI */}
       <section className="mx-auto max-w-6xl px-4 py-10">
         <h2 className="mb-4 text-lg font-heading font-semibold text-primary-800">Jelajahi Berdasarkan Program Studi</h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -89,7 +85,6 @@ export default async function BerandaPage() {
         </div>
       </section>
 
-      {/* KATEGORI */}
       <section className="mx-auto max-w-6xl px-4 pb-10">
         <h2 className="mb-4 text-lg font-heading font-semibold text-primary-800">Jelajahi Berdasarkan Kategori</h2>
         <div className="grid gap-3 sm:grid-cols-4">
@@ -110,7 +105,6 @@ export default async function BerandaPage() {
         </div>
       </section>
 
-      {/* TERBARU */}
       <section className="mx-auto max-w-6xl px-4 pb-10">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-heading font-semibold text-primary-800">Tugas Akhir Terbaru</h2>
@@ -118,16 +112,7 @@ export default async function BerandaPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           {(terbaru ?? []).map((ta: any) => (
-            <a key={ta.id} href={`/ta/${ta.id}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
-              <span className={`mr-1 rounded px-1.5 py-0.5 text-xs font-medium ${ta.prodi === "s1_pend_otomotif" ? "bg-primary-100 text-primary-700" : "bg-accent-100 text-accent-700"}`}>
-                {ta.prodi === "s1_pend_otomotif" ? "S1" : "D3"}
-              </span>
-              <span className="text-xs text-slate-500">{ta.kategori_topik?.nama_kategori ?? "Umum"}</span>
-              <p className="mt-1 font-heading font-medium text-primary-800">{ta.judul}</p>
-              <p className="mt-1 text-xs text-slate-500">
-                {ta.mahasiswa?.nama_lengkap} · {ta.mahasiswa?.nim}
-              </p>
-            </a>
+            <TACard key={ta.id} ta={ta} />
           ))}
           {(terbaru ?? []).length === 0 && <p className="text-sm text-slate-500">Belum ada TA yang terbit.</p>}
         </div>
