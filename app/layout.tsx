@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
+import { getUserAndProfile } from "@/lib/supabase/get-profile";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const plusJakarta = Plus_Jakarta_Sans({
@@ -17,14 +18,8 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  let profile: { role: string; nama_lengkap: string } | null = null;
-  if (user) {
-    const { data } = await supabase.from("profiles").select("role, nama_lengkap").eq("id", user.id).single();
-    profile = data;
-  }
-
+  // Gunakan cached helper agar tidak duplikasi fetch dengan layout dashboard
+  const { profile } = await getUserAndProfile();
   const labelRole: Record<string, string> = { mahasiswa: "Mahasiswa", dosen: "Dosen", admin: "Admin" };
 
   return (
@@ -32,42 +27,42 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <header className="bg-primary-700 text-white">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <a href="/" className="flex items-center gap-2 font-heading font-semibold">
+            <Link href="/" className="flex items-center gap-2 font-heading font-semibold">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-sm">RT</span>
               <span>Repository TA <span className="hidden text-primary-200 sm:inline">· Teknik Otomotif UNP</span></span>
-            </a>
+            </Link>
             <nav className="flex items-center gap-5 text-sm">
-              <a href="/" className="hover:text-accent-300">Beranda</a>
-              <a href="/repositori" className="hover:text-accent-300">Repositori</a>
+              <Link href="/" className="hover:text-accent-300">Beranda</Link>
+              <Link href="/repositori" className="hover:text-accent-300">Repositori</Link>
               {(!profile || profile.role === "mahasiswa") && (
-                <a href="/statistik" className="hover:text-accent-300">Statistik</a>
+                <Link href="/statistik" className="hover:text-accent-300">Statistik</Link>
               )}
-              <a href="/tentang" className="hover:text-accent-300">Tentang</a>
+              <Link href="/tentang" className="hover:text-accent-300">Tentang</Link>
               {profile?.role === "mahasiswa" && (
-                <a href="/dashboard/mahasiswa/upload" className="hover:text-accent-300">Unggah TA</a>
+                <Link href="/dashboard/mahasiswa/upload" className="hover:text-accent-300">Unggah TA</Link>
               )}
               {profile?.role === "dosen" && (
-                <a href="/dashboard/dosen" className="hover:text-accent-300">Dashboard</a>
+                <Link href="/dashboard/dosen" className="hover:text-accent-300">Dashboard</Link>
               )}
               {profile?.role === "admin" && (
                 <>
-                  <a href="/dashboard/admin/dashboard" className="hover:text-accent-300">Dashboard</a>
-                  <a href="/dashboard/admin" className="hover:text-accent-300">Panel Admin</a>
+                  <Link href="/dashboard/admin/dashboard" className="hover:text-accent-300">Dashboard</Link>
+                  <Link href="/dashboard/admin" className="hover:text-accent-300">Panel Admin</Link>
                 </>
               )}
               <span className="mx-1 h-4 w-px bg-primary-500" />
               {profile ? (
                 <>
-                  <a
+                  <Link
                     href={`/dashboard/${profile.role}`}
                     className="rounded-full bg-primary-500 px-3 py-1.5 font-medium text-white hover:bg-primary-400"
                   >
                     {labelRole[profile.role]} · {profile.nama_lengkap.split(" ")[0]}
-                  </a>
+                  </Link>
                   <LogoutButton />
                 </>
               ) : (
-                <a href="/login" className="rounded-full bg-accent-500 px-4 py-1.5 font-medium hover:bg-accent-600">Masuk</a>
+                <Link href="/login" className="rounded-full bg-accent-500 px-4 py-1.5 font-medium hover:bg-accent-600">Masuk</Link>
               )}
             </nav>
           </div>
@@ -88,10 +83,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div>
               <p className="font-heading font-semibold text-white">Tautan Cepat</p>
               <ul className="mt-2 space-y-1 text-sm">
-                <li><a href="/">Beranda</a></li>
-                <li><a href="/repositori">Jelajahi Repositori</a></li>
-                <li><a href="/dashboard/mahasiswa/upload">Unggah Tugas Akhir</a></li>
-                <li><a href="/tentang">Tentang Jurusan</a></li>
+                <li><Link href="/">Beranda</Link></li>
+                <li><Link href="/repositori">Jelajahi Repositori</Link></li>
+                <li><Link href="/dashboard/mahasiswa/upload">Unggah Tugas Akhir</Link></li>
+                <li><Link href="/tentang">Tentang Jurusan</Link></li>
               </ul>
             </div>
             <div>

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { verifikasiTugasAkhir } from "@/lib/actions/ta";
+import Link from "next/link";
 
 export default async function KelolaTAPage() {
   const supabase = createClient();
@@ -26,7 +27,7 @@ export default async function KelolaTAPage() {
             {(daftarTA ?? []).map((ta: any) => (
               <tr key={ta.id} className="border-t border-slate-100">
                 <td className="p-3 font-medium text-primary-800">
-                  <a href={`/ta/${ta.id}`} className="hover:underline">{ta.judul}</a>
+                  <Link href={`/ta/${ta.id}`} className="hover:underline">{ta.judul}</Link>
                 </td>
                 <td className="p-3">{ta.mahasiswa?.nama_lengkap}</td>
                 <td className="p-3">{ta.tahun}</td>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function RingkasanMahasiswaPage() {
   const supabase = createClient();
@@ -26,12 +27,12 @@ export default async function RingkasanMahasiswaPage() {
       <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-medium text-primary-800">TA Saya</p>
-          <a href="/dashboard/mahasiswa/status" className="text-xs text-accent-600 hover:underline">Lihat semua →</a>
+          <Link href="/dashboard/mahasiswa/status" className="text-xs text-accent-600 hover:underline">Lihat semua →</Link>
         </div>
         <ul className="space-y-2 text-sm">
           {rows.slice(0, 5).map((ta) => (
             <li key={ta.id} className="flex items-center justify-between border-t border-slate-100 py-2 first:border-t-0">
-              <a href={`/ta/${ta.id}`} className="font-medium text-primary-700 hover:underline">{ta.judul}</a>
+              <Link href={`/ta/${ta.id}`} className="font-medium text-primary-700 hover:underline">{ta.judul}</Link>
               {ta.status_verifikasi === "ditolak" ? (
                 <span className="shrink-0 rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Ditarik</span>
               ) : (
@@ -41,7 +42,7 @@ export default async function RingkasanMahasiswaPage() {
           ))}
           {rows.length === 0 && (
             <li className="text-slate-500">
-              Kamu belum mengunggah TA. <a href="/dashboard/mahasiswa/upload" className="text-accent-600 hover:underline">Unggah sekarang →</a>
+              Kamu belum mengunggah TA. <Link href="/dashboard/mahasiswa/upload" className="text-accent-600 hover:underline">Unggah sekarang →</Link>
             </li>
           )}
         </ul>

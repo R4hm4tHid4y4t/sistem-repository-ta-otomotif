@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function RingkasanAdminPage() {
   const supabase = createClient();
@@ -30,7 +31,7 @@ export default async function RingkasanAdminPage() {
       <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
         <div className="mb-2 flex items-center justify-between">
           <p className="text-sm font-medium text-primary-800">Aktivitas Terbaru</p>
-          <a href="/dashboard/admin/log" className="text-xs text-accent-600 hover:underline">Lihat semua →</a>
+          <Link href="/dashboard/admin/log" className="text-xs text-accent-600 hover:underline">Lihat semua →</Link>
         </div>
         <ul className="space-y-1 text-sm">
           {(logTerbaru ?? []).map((l, i) => (

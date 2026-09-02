@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getUserAndProfile } from "@/lib/supabase/get-profile";
 
 const MENU: Record<string, { href: string; label: string }[]> = {
   mahasiswa: [
@@ -23,14 +24,10 @@ const MENU: Record<string, { href: string; label: string }[]> = {
 };
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-  if (!profile) redirect("/login");
+  // Gunakan cache data auth agar tidak memicu fetch berulang
+  const { user, profile } = await getUserAndProfile();
+  
+  if (!user || !profile) redirect("/login");
 
   const menu = MENU[profile.role] ?? [];
 
@@ -40,9 +37,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <p className="mb-3 px-2 text-sm font-medium text-slate-500">Halo, {profile.nama_lengkap}</p>
         <nav className="space-y-1">
           {menu.map((item) => (
-            <a key={item.href} href={item.href} className="block rounded-lg px-3 py-2 text-sm text-primary-800 hover:bg-primary-50">
+            <Link key={item.href} href={item.href} className="block rounded-lg px-3 py-2 text-sm text-primary-800 hover:bg-primary-50">
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
       </aside>

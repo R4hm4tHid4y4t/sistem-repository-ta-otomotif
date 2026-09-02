@@ -1,5 +1,5 @@
-// Use case: "Melihat Rekap Dosen & Ekspor Excel" (extend dari Dashboard Statistik)
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function RekapDosenPage() {
   const supabase = createClient();
@@ -22,6 +22,7 @@ export default async function RekapDosenPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-primary-800">Rekap TA</h1>
+        {/* URL ini dipertahankan sebagai tag <a> karena ini mendownload file, bukan transisi halaman React */}
         <a href="/api/ekspor/rekap-dosen" className="rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600">
           ⬇ Ekspor Excel
         </a>
@@ -53,7 +54,7 @@ function RekapTable({ rows }: { rows: { id: string; judul: string; tahun: number
           {rows.map((ta) => (
             <tr key={ta.id} className="border-t border-slate-100">
               <td className="p-3 font-medium text-primary-800">
-                <a href={`/ta/${ta.id}`} className="hover:underline">{ta.judul}</a>
+                <Link href={`/ta/${ta.id}`} className="hover:underline">{ta.judul}</Link>
               </td>
               <td className="p-3">{ta.tahun}</td>
               <td className="p-3">

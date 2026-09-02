@@ -1,36 +1,37 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getSdg } from "@/lib/sdgs";
 import { DownloadTAButton } from "./download-button";
+import { getUserAndProfile } from "@/lib/supabase/get-profile";
 
 export default async function DetailTAPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  let profile: { role: string } | null = null;
-  if (user) {
-    const { data } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-    profile = data;
-  }
-  const bolehUnduh = profile?.role === "mahasiswa" || profile?.role === "dosen" || profile?.role === "admin";
+  // Paralelkan pengecekan user auth dan pengambilan data TA utama
+  const [ { profile }, { data: ta } ] = await Promise.all([
+    getUserAndProfile(),
+    supabase
+      .from("tugas_akhir")
+      .select(`
+        *,
+        kategori_topik(nama_kategori),
+        mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim),
+        pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
+        pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
+        penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
+        penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap)
+      `)
+      .eq("id", params.id)
+      .eq("status_verifikasi", "diterima")
+      .single()
+  ]);
 
-  const { data: ta } = await supabase
-    .from("tugas_akhir")
-    .select(`
-      *,
-      kategori_topik(nama_kategori),
-      mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim),
-      pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
-      pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
-      penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
-      penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap)
-    `)
-    .eq("id", params.id)
-    .eq("status_verifikasi", "diterima")
-    .single();
+  const bolehUnduh = profile?.role === "mahasiswa" || profile?.role === "dosen" || profile?.role === "admin";
 
   if (!ta) return notFound();
 
+  // Ambil terkait yang bergantung dengan kategori ID yang didapatkan di atas
   const { data: terkait } = await supabase
     .from("tugas_akhir")
     .select("id, judul, tahun, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap)")
@@ -42,7 +43,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <p className="mb-4 text-xs text-slate-500">
-        <a href="/">Beranda</a> / <a href="/repositori">Repositori</a> / {ta.judul.slice(0, 40)}...
+        <Link href="/">Beranda</Link> / <Link href="/repositori">Repositori</Link> / {ta.judul.slice(0, 40)}...
       </p>
 
       <div className="grid gap-6 sm:grid-cols-[1fr_280px]">
@@ -126,7 +127,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             ) : (
               <>
                 <p className="mb-3 text-xs text-slate-500">Login sebagai mahasiswa atau dosen untuk mengunduh dokumen.</p>
-                <a href="/login" className="block rounded-lg border border-primary-600 px-4 py-2 text-center text-sm font-medium text-primary-700 hover:bg-primary-50">Masuk</a>
+                <Link href="/login" className="block rounded-lg border border-primary-600 px-4 py-2 text-center text-sm font-medium text-primary-700 hover:bg-primary-50">Masuk</Link>
               </>
             )}
           </div>
@@ -137,7 +138,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
               <ul className="space-y-2 text-sm">
                 {(terkait ?? []).map((t: any) => (
                   <li key={t.id}>
-                    <a href={`/ta/${t.id}`} className="font-medium text-primary-700 hover:underline">{t.judul}</a>
+                    <Link href={`/ta/${t.id}`} className="font-medium text-primary-700 hover:underline">{t.judul}</Link>
                     <p className="text-xs text-slate-500">{t.mahasiswa?.nama_lengkap} · {t.tahun}</p>
                   </li>
                 ))}

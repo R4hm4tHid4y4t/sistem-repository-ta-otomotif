@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function LoginPage() {
         />
         <button className="w-full rounded-lg bg-accent-500 py-2 font-medium text-white hover:bg-accent-600">Masuk</button>
         <p className="text-sm text-slate-500">
-          Belum punya akun? <a href="/register" className="font-medium text-primary-700 hover:underline">Daftar</a>
+          Belum punya akun? <Link href="/register" className="font-medium text-primary-700 hover:underline">Daftar</Link>
         </p>
       </form>
     </div>

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function RepositoriPage({
   searchParams,
@@ -18,8 +19,11 @@ export default async function RepositoriPage({
   if (searchParams.kategori) query = query.eq("kategori_id", searchParams.kategori);
   if (searchParams.tahun) query = query.eq("tahun", Number(searchParams.tahun));
 
-  const { data: daftarTA } = await query;
-  const { data: kategoriList } = await supabase.from("kategori_topik").select("id, nama_kategori");
+  // Paralelkan pengambilan Data TA dan Kategori Topik
+  const [{ data: daftarTA }, { data: kategoriList }] = await Promise.all([
+    query,
+    supabase.from("kategori_topik").select("id, nama_kategori"),
+  ]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -35,15 +39,15 @@ export default async function RepositoriPage({
         <aside className="h-fit space-y-4 rounded-2xl border border-slate-100 bg-white p-4 text-sm shadow-sm">
           <div>
             <p className="mb-1 font-medium text-primary-800">Program Studi</p>
-            <a href="/repositori" className="block py-0.5 text-slate-600 hover:text-accent-600">Semua</a>
-            <a href="/repositori?prodi=s1_pend_otomotif" className="block py-0.5 text-slate-600 hover:text-accent-600">S1 Pend. Teknik Otomotif</a>
-            <a href="/repositori?prodi=d3_otomotif" className="block py-0.5 text-slate-600 hover:text-accent-600">D3 Teknik Otomotif</a>
+            <Link href="/repositori" className="block py-0.5 text-slate-600 hover:text-accent-600">Semua</Link>
+            <Link href="/repositori?prodi=s1_pend_otomotif" className="block py-0.5 text-slate-600 hover:text-accent-600">S1 Pend. Teknik Otomotif</Link>
+            <Link href="/repositori?prodi=d3_otomotif" className="block py-0.5 text-slate-600 hover:text-accent-600">D3 Teknik Otomotif</Link>
           </div>
           <div>
             <p className="mb-1 font-medium text-primary-800">Kategori / Topik</p>
-            <a href="/repositori" className="block py-0.5 text-slate-600 hover:text-accent-600">Semua kategori</a>
+            <Link href="/repositori" className="block py-0.5 text-slate-600 hover:text-accent-600">Semua kategori</Link>
             {(kategoriList ?? []).map((k) => (
-              <a key={k.id} href={`/repositori?kategori=${k.id}`} className="block py-0.5 text-slate-600 hover:text-accent-600">{k.nama_kategori}</a>
+              <Link key={k.id} href={`/repositori?kategori=${k.id}`} className="block py-0.5 text-slate-600 hover:text-accent-600">{k.nama_kategori}</Link>
             ))}
           </div>
         </aside>
@@ -52,14 +56,14 @@ export default async function RepositoriPage({
           <p className="mb-3 text-sm text-slate-500">{(daftarTA ?? []).length} TA ditemukan</p>
           <div className="grid gap-4 sm:grid-cols-2">
             {(daftarTA ?? []).map((ta: any) => (
-              <a key={ta.id} href={`/ta/${ta.id}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+              <Link key={ta.id} href={`/ta/${ta.id}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
                 <span className={`mr-1 rounded px-1.5 py-0.5 text-xs font-medium ${ta.prodi === "s1_pend_otomotif" ? "bg-primary-100 text-primary-700" : "bg-accent-100 text-accent-700"}`}>
                   {ta.prodi === "s1_pend_otomotif" ? "S1" : "D3"}
                 </span>
                 <span className="text-xs text-slate-500">{ta.kategori_topik?.nama_kategori ?? "Umum"}</span>
                 <p className="mt-1 font-medium text-primary-800">{ta.judul}</p>
                 <p className="mt-1 text-xs text-slate-500">{ta.mahasiswa?.nama_lengkap} · {ta.mahasiswa?.nim}</p>
-              </a>
+              </Link>
             ))}
             {(daftarTA ?? []).length === 0 && <p className="text-sm text-slate-500">Belum ada TA yang cocok.</p>}
           </div>

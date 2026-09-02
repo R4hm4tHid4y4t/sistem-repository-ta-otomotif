@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function TASayaPage({
   searchParams,
@@ -25,7 +26,7 @@ export default async function TASayaPage({
         {(daftarTA ?? []).map((ta) => (
           <li key={ta.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <div>
-              <a href={`/ta/${ta.id}`} className="font-medium text-primary-700 hover:underline">{ta.judul}</a>
+              <Link href={`/ta/${ta.id}`} className="font-medium text-primary-700 hover:underline">{ta.judul}</Link>
               <p className="text-sm text-slate-500">{ta.tahun}</p>
             </div>
             {ta.status_verifikasi === "ditolak" ? (

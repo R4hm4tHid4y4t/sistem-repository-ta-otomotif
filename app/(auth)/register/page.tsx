@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 export default function RegisterPage() {
   const supabase = createClient();
@@ -56,7 +57,7 @@ export default function RegisterPage() {
         )}
         <button className="w-full rounded-lg bg-accent-500 py-2 font-medium text-white hover:bg-accent-600">Daftar</button>
         <p className="text-sm text-slate-500">
-          Sudah punya akun? <a href="/login" className="font-medium text-primary-700 hover:underline">Masuk</a>
+          Sudah punya akun? <Link href="/login" className="font-medium text-primary-700 hover:underline">Masuk</Link>
         </p>
       </form>
     </div>
