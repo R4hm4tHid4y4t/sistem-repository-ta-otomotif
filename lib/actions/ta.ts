@@ -16,6 +16,9 @@ export async function uploadTugasAkhir(formData: FormData) {
   const prodi = (formData.get("prodi") as string) || "s1_pend_otomotif";
   const kategori_id = (formData.get("kategori_id") as string) || null;
   const tahun = Number(formData.get("tahun"));
+  const kbk = (formData.get("kbk") as string) || null;
+  const jenis_doc = (formData.get("jenis_doc") as string) || "ta";
+  const bidang = (formData.get("bidang") as string) || null;
 
   const kataKunciRaw = (formData.get("kata_kunci") as string) || "";
   const kata_kunci = kataKunciRaw.split(",").map((s) => s.trim()).filter(Boolean);
@@ -27,6 +30,7 @@ export async function uploadTugasAkhir(formData: FormData) {
   const dosen_pembimbing_2_id = (formData.get("dosen_pembimbing_2_id") as string) || null;
   const dosen_penguji_1_id = (formData.get("dosen_penguji_1_id") as string) || null;
   const dosen_penguji_2_id = (formData.get("dosen_penguji_2_id") as string) || null;
+  const dosen_penguji_3_id = (formData.get("dosen_penguji_3_id") as string) || null;
 
   if (!file || file.size === 0) throw new Error("File PDF wajib diunggah.");
 
@@ -43,11 +47,15 @@ export async function uploadTugasAkhir(formData: FormData) {
     prodi,
     kata_kunci,
     sdgs,
+    kbk,
+    jenis_doc,
+    bidang,
     kategori_id,
     dosen_pembimbing_id,
     dosen_pembimbing_2_id,
     dosen_penguji_1_id,
     dosen_penguji_2_id,
+    dosen_penguji_3_id,
     tahun,
     mahasiswa_id: user.id,
     file_path: filePath,

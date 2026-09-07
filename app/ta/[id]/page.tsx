@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSdg } from "@/lib/sdgs";
+import { LABEL_JENIS_DOC, LABEL_BIDANG, type JenisDoc, type Bidang } from "@/lib/klasifikasi";
 import { DownloadTAButton } from "./download-button";
 import { getUserAndProfile } from "@/lib/supabase/get-profile";
 
@@ -20,7 +21,8 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
         pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
         pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
         penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
-        penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap)
+        penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap),
+        penguji3:profiles!tugas_akhir_dosen_penguji_3_id_fkey(nama_lengkap)
       `)
       .eq("id", params.id)
       .eq("status_verifikasi", "diterima")
@@ -48,13 +50,22 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
 
       <div className="grid gap-6 sm:grid-cols-[1fr_280px]">
         <div>
-          <div className="mb-2 flex gap-2">
+          <div className="mb-2 flex flex-wrap gap-2">
             <span className={`rounded px-2 py-1 text-xs font-medium ${ta.prodi === "s1_pend_otomotif" ? "bg-primary-100 text-primary-700" : "bg-accent-100 text-accent-700"}`}>
               {ta.prodi === "s1_pend_otomotif" ? "S1" : "D3"}
             </span>
             <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
               {ta.kategori_topik?.nama_kategori ?? "Umum"}
             </span>
+            <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+              {LABEL_JENIS_DOC[ta.jenis_doc as JenisDoc]}
+            </span>
+            {ta.kbk && (
+              <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{ta.kbk}</span>
+            )}
+            {ta.bidang && (
+              <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{LABEL_BIDANG[ta.bidang as Bidang]}</span>
+            )}
           </div>
           <h1 className="text-2xl font-semibold text-primary-800">{ta.judul}</h1>
 
@@ -66,6 +77,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             <Info label="Pembimbing II" value={ta.pembimbing2?.nama_lengkap ?? "-"} />
             <Info label="Penguji I" value={ta.penguji1?.nama_lengkap ?? "-"} />
             <Info label="Penguji II" value={ta.penguji2?.nama_lengkap ?? "-"} />
+            {ta.penguji3?.nama_lengkap && <Info label="Penguji III" value={ta.penguji3.nama_lengkap} />}
             <Info
               label="Diunggah"
               value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}

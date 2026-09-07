@@ -7,6 +7,8 @@ export type StatusVerifikasiTA = "pending" | "diterima" | "ditolak";
 export type StatusKompre = "menunggu" | "disetujui" | "ditolak" | "selesai";
 export type PeranPenguji = "pembimbing" | "penguji_1" | "penguji_2" | "ketua_sidang";
 export type Prodi = "s1_pend_otomotif" | "d3_otomotif";
+export type JenisDoc = "ta" | "jurnal" | "laporan_pkl" | "laporan_praktek_industri";
+export type Bidang = "kependidikan" | "non_kependidikan";
 
 export interface Profile {
   id: string;
@@ -39,11 +41,15 @@ export interface TugasAkhir {
   tahun: number;
   prodi: Prodi;
   sdgs: number[];
+  kbk: string | null;
+  jenis_doc: JenisDoc;
+  bidang: Bidang | null;
   mahasiswa_id: string;
   dosen_pembimbing_id: string | null;
   dosen_pembimbing_2_id: string | null;
   dosen_penguji_1_id: string | null;
   dosen_penguji_2_id: string | null;
+  dosen_penguji_3_id: string | null;
   kategori_id: string | null;
   status_verifikasi: StatusVerifikasiTA;
   catatan_verifikasi: string | null;

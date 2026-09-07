@@ -4,11 +4,13 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { uploadTugasAkhir } from "@/lib/actions/ta";
 import { DAFTAR_SDGS } from "@/lib/sdgs";
+import { JENIS_DOC_PER_PRODI, KBK_PER_PRODI, LABEL_JENIS_DOC, type Prodi, type JenisDoc } from "@/lib/klasifikasi";
 
 type Kategori = { id: string; nama_kategori: string };
 type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
 
 const LANGKAH = ["Data TA", "Upload File", "Review & Submit"];
+type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3";
 
 export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Kategori[]; dosenList: Dosen[] }) {
   const router = useRouter();
@@ -20,33 +22,52 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
   const [judul, setJudul] = useState("");
   const [abstrak, setAbstrak] = useState("");
   const [kataKunci, setKataKunci] = useState("");
-  const [prodi, setProdi] = useState("s1_pend_otomotif");
+  const [prodi, setProdi] = useState<Prodi>("s1_pend_otomotif");
   const [tahun, setTahun] = useState(String(new Date().getFullYear()));
   const [kategoriId, setKategoriId] = useState("");
+  const [kbk, setKbk] = useState("");
+  const [jenisDoc, setJenisDoc] = useState<JenisDoc | "">("");
+  const [bidang, setBidang] = useState("");
   const [sdgs, setSdgs] = useState<number[]>([]);
   const [pembimbing1, setPembimbing1] = useState("");
   const [pembimbing2, setPembimbing2] = useState("");
   const [penguji1, setPenguji1] = useState("");
   const [penguji2, setPenguji2] = useState("");
+  const [penguji3, setPenguji3] = useState("");
   const [file, setFile] = useState<File | null>(null);
+
+  function handleProdiChange(value: string) {
+    const p = value as Prodi;
+    setProdi(p);
+    if (!JENIS_DOC_PER_PRODI[p].includes(jenisDoc as JenisDoc)) setJenisDoc("");
+    if (!KBK_PER_PRODI[p].includes(kbk)) setKbk("");
+    if (p !== "s1_pend_otomotif") setBidang("");
+  }
 
   function toggleSdg(n: number) {
     setSdgs((prev) => (prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]));
   }
 
-  function pilihDosen(field: "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2", value: string) {
-    const setters = { pembimbing1: setPembimbing1, pembimbing2: setPembimbing2, penguji1: setPenguji1, penguji2: setPenguji2 };
-    const nilaiSekarang = { pembimbing1, pembimbing2, penguji1, penguji2 };
+  const setters: Record<PeranDosen, (v: string) => void> = {
+    pembimbing1: setPembimbing1,
+    pembimbing2: setPembimbing2,
+    penguji1: setPenguji1,
+    penguji2: setPenguji2,
+    penguji3: setPenguji3,
+  };
+
+  function pilihDosen(field: PeranDosen, value: string) {
+    const nilaiSekarang: Record<PeranDosen, string> = { pembimbing1, pembimbing2, penguji1, penguji2, penguji3 };
     setters[field](value);
     if (value) {
-      (Object.keys(setters) as (keyof typeof setters)[]).forEach((key) => {
+      (Object.keys(setters) as PeranDosen[]).forEach((key) => {
         if (key !== field && nilaiSekarang[key] === value) setters[key]("");
       });
     }
   }
 
   function opsiDosen(kecuali: string) {
-    const dipakai = new Set([pembimbing1, pembimbing2, penguji1, penguji2].filter((id) => id && id !== kecuali));
+    const dipakai = new Set([pembimbing1, pembimbing2, penguji1, penguji2, penguji3].filter((id) => id && id !== kecuali));
     return dosenList.filter((d) => !dipakai.has(d.id));
   }
 
@@ -55,8 +76,12 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
   }
 
   function validasiLangkah1() {
-    if (!judul || !abstrak || !kategoriId || !pembimbing1 || !penguji1) {
+    if (!judul || !abstrak || !kategoriId || !kbk || !jenisDoc || !pembimbing1 || !penguji1) {
       setError("Lengkapi semua field bertanda * dulu ya.");
+      return false;
+    }
+    if (prodi === "s1_pend_otomotif" && !bidang) {
+      setError("Pilih Bidang (Kependidikan/Non-Kependidikan) dulu.");
       return false;
     }
     setError(null);
@@ -75,10 +100,14 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
     fd.set("kategori_id", kategoriId);
     fd.set("kata_kunci", kataKunci);
     fd.set("sdgs", sdgs.join(","));
+    fd.set("kbk", kbk);
+    fd.set("jenis_doc", jenisDoc);
+    fd.set("bidang", bidang);
     fd.set("dosen_pembimbing_id", pembimbing1);
     fd.set("dosen_pembimbing_2_id", pembimbing2);
     fd.set("dosen_penguji_1_id", penguji1);
     fd.set("dosen_penguji_2_id", penguji2);
+    fd.set("dosen_penguji_3_id", penguji3);
     fd.set("file", file);
 
     startTransition(async () => {
@@ -93,7 +122,6 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
 
   return (
     <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-      {/* STEPPER */}
       <div className="mb-6 flex items-center gap-2 text-sm">
         {LANGKAH.map((label, i) => {
           const n = i + 1;
@@ -117,31 +145,63 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
 
       {error && <p className="mb-4 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">{error}</p>}
 
-      {/* STEP 1 */}
       {langkah === 1 && (
         <div className="space-y-4">
-          <Field label="Judul Tugas Akhir *">
-            <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2" />
+          <Field label="Program Studi *">
+            <select value={prodi} onChange={(e) => handleProdiChange(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+              <option value="s1_pend_otomotif">S1 Pendidikan Teknik Otomotif</option>
+              <option value="d3_otomotif">D3 Teknik Otomotif</option>
+            </select>
           </Field>
-          <Field label="Abstrak *">
-            <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={5} className="w-full rounded border border-slate-300 px-3 py-2" />
-          </Field>
-          <Field label="Kata Kunci (pisahkan dengan koma)">
-            <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} placeholder="mis. ESP32, Bluetooth, Sensor" className="w-full rounded border border-slate-300 px-3 py-2" />
-          </Field>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Program Studi *">
-              <select value={prodi} onChange={(e) => setProdi(e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2">
-                <option value="s1_pend_otomotif">S1 Pendidikan Teknik Otomotif</option>
-                <option value="d3_otomotif">D3 Teknik Otomotif</option>
+            <Field label="Jenis Dokumen *">
+              <select value={jenisDoc} onChange={(e) => setJenisDoc(e.target.value as JenisDoc)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                <option value="">Pilih jenis dokumen</option>
+                {JENIS_DOC_PER_PRODI[prodi].map((j) => (
+                  <option key={j} value={j}>{LABEL_JENIS_DOC[j]}</option>
+                ))}
               </select>
             </Field>
-            <Field label="Tahun *">
-              <input type="number" value={tahun} onChange={(e) => setTahun(e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2" />
+            <Field label="KBK (Kelompok Bidang Kajian) *">
+              <select value={kbk} onChange={(e) => setKbk(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                <option value="">Pilih KBK</option>
+                {KBK_PER_PRODI[prodi].map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
             </Field>
           </div>
+
+          {prodi === "s1_pend_otomotif" && (
+            <Field label="Bidang *">
+              <div className="flex gap-4 text-sm">
+                <label className="flex items-center gap-2">
+                  <input type="radio" name="bidang" checked={bidang === "kependidikan"} onChange={() => setBidang("kependidikan")} />
+                  Kependidikan
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="radio" name="bidang" checked={bidang === "non_kependidikan"} onChange={() => setBidang("non_kependidikan")} />
+                  Non-Kependidikan
+                </label>
+              </div>
+            </Field>
+          )}
+
+          <Field label="Judul Tugas Akhir *">
+            <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+          </Field>
+          <Field label="Abstrak *">
+            <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={5} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+          </Field>
+          <Field label="Kata Kunci (pisahkan dengan koma)">
+            <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} placeholder="mis. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+          </Field>
+          <Field label="Tahun *">
+            <input type="number" value={tahun} onChange={(e) => setTahun(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+          </Field>
           <Field label="Kategori / Topik *">
-            <select value={kategoriId} onChange={(e) => setKategoriId(e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2">
+            <select value={kategoriId} onChange={(e) => setKategoriId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
               <option value="">Pilih kategori</option>
               {kategoriList.map((k) => (
                 <option key={k.id} value={k.id}>{k.nama_kategori}</option>
@@ -158,9 +218,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
                   type="button"
                   onClick={() => toggleSdg(s.nomor)}
                   style={sdgs.includes(s.nomor) ? { backgroundColor: s.warna } : undefined}
-                  className={`rounded px-2 py-1 text-xs font-medium ${
-                    sdgs.includes(s.nomor) ? "text-white" : "bg-slate-100 text-slate-600"
-                  }`}
+                  className={`rounded px-2 py-1 text-xs font-medium ${sdgs.includes(s.nomor) ? "text-white" : "bg-slate-100 text-slate-600"}`}
                 >
                   {s.nomor} {s.nama}
                 </button>
@@ -170,27 +228,33 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Pembimbing I *">
-              <select value={pembimbing1} onChange={(e) => pilihDosen("pembimbing1", e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2">
+              <select value={pembimbing1} onChange={(e) => pilihDosen("pembimbing1", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
                 <option value="">Pilih dosen</option>
                 {opsiDosen(pembimbing1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
               </select>
             </Field>
             <Field label="Pembimbing II (opsional)">
-              <select value={pembimbing2} onChange={(e) => pilihDosen("pembimbing2", e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2">
+              <select value={pembimbing2} onChange={(e) => pilihDosen("pembimbing2", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
                 <option value="">Pilih dosen</option>
                 {opsiDosen(pembimbing2).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
               </select>
             </Field>
             <Field label="Penguji I *">
-              <select value={penguji1} onChange={(e) => pilihDosen("penguji1", e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2">
+              <select value={penguji1} onChange={(e) => pilihDosen("penguji1", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
                 <option value="">Pilih dosen</option>
                 {opsiDosen(penguji1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
               </select>
             </Field>
             <Field label="Penguji II (opsional)">
-              <select value={penguji2} onChange={(e) => pilihDosen("penguji2", e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2">
+              <select value={penguji2} onChange={(e) => pilihDosen("penguji2", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
                 <option value="">Pilih dosen</option>
                 {opsiDosen(penguji2).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+              </select>
+            </Field>
+            <Field label="Penguji III (opsional)">
+              <select value={penguji3} onChange={(e) => pilihDosen("penguji3", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                <option value="">Pilih dosen</option>
+                {opsiDosen(penguji3).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
               </select>
             </Field>
           </div>
@@ -198,7 +262,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
           <div className="flex justify-end">
             <button
               onClick={() => validasiLangkah1() && setLangkah(2)}
-              className="rounded bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
+              className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
             >
               Lanjut →
             </button>
@@ -206,7 +270,6 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
         </div>
       )}
 
-      {/* STEP 2 */}
       {langkah === 2 && (
         <div className="space-y-4">
           <p className="text-sm font-medium text-primary-800">Upload File Dokumen</p>
@@ -214,7 +277,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="flex w-full flex-col items-center gap-2 rounded-lg border-2 border-dashed border-slate-300 py-10 text-center hover:border-accent-400"
+            className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-300 py-10 text-center hover:border-accent-400"
           >
             <span className="text-3xl">📄</span>
             {file ? (
@@ -227,14 +290,14 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
               <span className="text-sm text-slate-500">Klik untuk pilih file PDF</span>
             )}
           </button>
-          <p className="rounded bg-amber-50 p-3 text-xs text-amber-700">
+          <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
             Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD pembimbing) di dalamnya.
           </p>
           <div className="flex justify-between">
             <button onClick={() => setLangkah(1)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
             <button
               onClick={() => (file ? setLangkah(3) : setError("File PDF wajib diunggah."))}
-              className="rounded bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
+              className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
             >
               Lanjut →
             </button>
@@ -242,21 +305,25 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
         </div>
       )}
 
-      {/* STEP 3 */}
       {langkah === 3 && (
         <div className="space-y-4">
           <p className="text-sm font-medium text-primary-800">Review & Konfirmasi</p>
-          <div className="space-y-2 rounded border border-slate-200 p-4 text-sm">
+          <div className="space-y-2 rounded-xl border border-slate-200 p-4 text-sm">
             <Row label="Judul" value={judul} />
+            <Row label="Program Studi" value={prodi === "s1_pend_otomotif" ? "S1 Pend. Teknik Otomotif" : "D3 Teknik Otomotif"} />
+            <Row label="Jenis Dokumen" value={jenisDoc ? LABEL_JENIS_DOC[jenisDoc as JenisDoc] : "-"} />
+            <Row label="KBK" value={kbk || "-"} />
+            {prodi === "s1_pend_otomotif" && <Row label="Bidang" value={bidang === "kependidikan" ? "Kependidikan" : bidang === "non_kependidikan" ? "Non-Kependidikan" : "-"} />}
             <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
             <Row label="Pembimbing I" value={namaDosen(pembimbing1)} />
             <Row label="Pembimbing II" value={pembimbing2 ? namaDosen(pembimbing2) : "-"} />
             <Row label="Penguji I" value={namaDosen(penguji1)} />
             <Row label="Penguji II" value={penguji2 ? namaDosen(penguji2) : "-"} />
+            <Row label="Penguji III" value={penguji3 ? namaDosen(penguji3) : "-"} />
             <Row label="File" value={file?.name ?? "-"} />
             <Row label="SDGs" value={sdgs.length ? sdgs.join(", ") : "-"} />
           </div>
-          <p className="rounded bg-primary-50 p-3 text-sm text-primary-700">
+          <p className="rounded-lg bg-primary-50 p-3 text-sm text-primary-700">
             Dengan menekan "Unggah & Terbitkan", TA Anda akan <strong>langsung tayang di repositori</strong> dan dapat diakses oleh seluruh civitas akademika.
           </p>
           <div className="flex justify-between">
@@ -264,7 +331,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
             <button
               onClick={handleSubmit}
               disabled={isPending}
-              className="rounded bg-accent-500 px-5 py-2 font-medium text-white hover:bg-accent-600 disabled:opacity-50"
+              className="rounded-lg bg-accent-500 px-5 py-2 font-medium text-white hover:bg-accent-600 disabled:opacity-50"
             >
               {isPending ? "Mengunggah..." : "Unggah & Terbitkan ✓"}
             </button>
