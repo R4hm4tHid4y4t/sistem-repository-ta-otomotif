@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { StatistikChartsClient } from "./statistik-charts-client";
+import { LABEL_JENIS_DOC, type JenisDoc } from "@/lib/klasifikasi";
 
 export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }) {
   const supabase = createClient();
@@ -7,7 +8,7 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
   const [{ data: taRows }, { data: dosenRows }, { data: kategoriRows }] = await Promise.all([
     supabase
       .from("tugas_akhir")
-      .select("tahun, prodi, kategori_id, sdgs, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id")
+      .select("tahun, prodi, kategori_id, sdgs, kbk, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id")
       .eq("status_verifikasi", "diterima"),
     supabase.from("profiles").select("id, nama_lengkap").eq("role", "dosen"),
     supabase.from("kategori_topik").select("id, nama_kategori"),
@@ -31,6 +32,22 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
   });
   const perKategori = Array.from(kategoriCount, ([nama, jumlah]) => ({ nama, jumlah }));
 
+  const jenisDocCount = new Map<JenisDoc, number>();
+  rows.forEach((r) => {
+    const j = r.jenis_doc as JenisDoc;
+    jenisDocCount.set(j, (jenisDocCount.get(j) ?? 0) + 1);
+  });
+  const perJenisDoc = Array.from(jenisDocCount, ([jenis, jumlah]) => ({
+    nama: LABEL_JENIS_DOC[jenis] ?? jenis,
+    jumlah,
+  })).sort((a, b) => b.jumlah - a.jumlah);
+
+  const kbkCount = new Map<string, number>();
+  rows.forEach((r) => {
+    if (r.kbk) kbkCount.set(r.kbk, (kbkCount.get(r.kbk) ?? 0) + 1);
+  });
+  const perKbk = Array.from(kbkCount, ([nama, jumlah]) => ({ nama, jumlah })).sort((a, b) => b.jumlah - a.jumlah);
+
   const pembimbingCount = new Map<string, number>();
   rows.forEach((r) => {
     [r.dosen_pembimbing_id, r.dosen_pembimbing_2_id].forEach((id) => {
@@ -44,7 +61,7 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
 
   const pengujiCount = new Map<string, number>();
   rows.forEach((r) => {
-    [r.dosen_penguji_1_id, r.dosen_penguji_2_id].forEach((id) => {
+    [r.dosen_penguji_1_id, r.dosen_penguji_2_id, r.dosen_penguji_3_id].forEach((id) => {
       if (id) pengujiCount.set(id, (pengujiCount.get(id) ?? 0) + 1);
     });
   });
@@ -62,6 +79,8 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
       totalTA={rows.length}
       perTahun={perTahun}
       perKategori={perKategori}
+      perJenisDoc={perJenisDoc}
+      perKbk={perKbk}
       perPembimbing={perPembimbing}
       perPenguji={perPenguji}
       sdgCount={sdgCount}
