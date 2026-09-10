@@ -5,8 +5,8 @@ import { getUserAndProfile } from "@/lib/supabase/get-profile";
 const MENU: Record<string, { href: string; label: string }[]> = {
   mahasiswa: [
     { href: "/dashboard/mahasiswa", label: "Ringkasan" },
-    { href: "/dashboard/mahasiswa/upload", label: "Unggah TA" },
-    { href: "/dashboard/mahasiswa/status", label: "TA Saya" },
+    { href: "/dashboard/mahasiswa/upload", label: "Unggah Karya" },
+    { href: "/dashboard/mahasiswa/status", label: "Karya Saya" },
   ],
   dosen: [
     { href: "/dashboard/dosen", label: "Ringkasan" },
@@ -15,7 +15,7 @@ const MENU: Record<string, { href: string; label: string }[]> = {
   admin: [
     { href: "/dashboard/admin", label: "Ringkasan" },
     { href: "/dashboard/admin/dashboard", label: "Dashboard" },
-    { href: "/dashboard/admin/verifikasi", label: "Kelola TA" },
+    { href: "/dashboard/admin/verifikasi", label: "Kelola Karya Ilmiah" },
     { href: "/dashboard/admin/pengguna", label: "Kelola Pengguna" },
     { href: "/dashboard/admin/master-data", label: "Master Dosen" },
     { href: "/dashboard/admin/kategori", label: "Kategori & SDGs" },

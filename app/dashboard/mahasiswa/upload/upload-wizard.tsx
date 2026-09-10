@@ -9,7 +9,7 @@ import { JENIS_DOC_PER_PRODI, KBK_PER_PRODI, LABEL_JENIS_DOC, type Prodi, type J
 type Kategori = { id: string; nama_kategori: string };
 type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
 
-const LANGKAH = ["Data TA", "Upload File", "Review & Submit"];
+const LANGKAH = ["Data Karya", "Upload File", "Review & Submit"];
 type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3";
 
 export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Kategori[]; dosenList: Dosen[] }) {
@@ -115,7 +115,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
         await uploadTugasAkhir(fd);
         router.push("/dashboard/mahasiswa/status?uploaded=1");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Gagal mengunggah TA.");
+        setError(err instanceof Error ? err.message : "Gagal mengunggah Karya.");
       }
     });
   }
@@ -324,7 +324,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
             <Row label="SDGs" value={sdgs.length ? sdgs.join(", ") : "-"} />
           </div>
           <p className="rounded-lg bg-primary-50 p-3 text-sm text-primary-700">
-            Dengan menekan "Unggah & Terbitkan", TA Anda akan <strong>langsung tayang di repositori</strong> dan dapat diakses oleh seluruh civitas akademika.
+            Dengan menekan "Unggah & Terbitkan", Karya Anda akan <strong>langsung tayang di repositori</strong> dan dapat diakses oleh seluruh civitas akademika.
           </p>
           <div className="flex justify-between">
             <button onClick={() => setLangkah(2)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>

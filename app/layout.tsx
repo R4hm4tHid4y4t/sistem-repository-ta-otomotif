@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import Link from "next/link";
-import { LogoutButton } from "@/components/logout-button";
-import { getUserAndProfile } from "@/lib/supabase/get-profile";
+import { createClient } from "@/lib/supabase/server";
+import { SiteHeader } from "@/components/site-header";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const plusJakarta = Plus_Jakarta_Sans({
@@ -13,90 +12,101 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Repository TA - Teknik Otomotif UNP",
-  description: "Sistem Repository Tugas Akhir Jurusan Teknik Otomotif Universitas Negeri Padang",
+  title: "Repositori Karya Ilmiah - Teknik Otomotif UNP",
+  description: "Sistem Repositori Karya Ilmiah Jurusan Teknik Otomotif Universitas Negeri Padang",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Gunakan cached helper agar tidak duplikasi fetch dengan layout dashboard
-  const { profile } = await getUserAndProfile();
-  const labelRole: Record<string, string> = { mahasiswa: "Mahasiswa", dosen: "Dosen", admin: "Admin" };
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let profile: { role: string; nama_lengkap: string } | null = null;
+  
+  if (user) {
+    const { data } = await supabase.from("profiles").select("role, nama_lengkap").eq("id", user.id).single();
+    profile = data;
+  }
 
   return (
     <html lang="id" className={`${inter.variable} ${plusJakarta.variable}`}>
       <body>
-        <header className="bg-primary-700 text-white">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-            <Link href="/" className="flex items-center gap-2 font-heading font-semibold">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-sm">RT</span>
-              <span>Repository TA <span className="hidden text-primary-200 sm:inline">· Teknik Otomotif UNP</span></span>
-            </Link>
-            <nav className="flex items-center gap-5 text-sm">
-              <Link href="/" className="hover:text-accent-300">Beranda</Link>
-              <Link href="/repositori" className="hover:text-accent-300">Repositori</Link>
-              {(!profile || profile.role === "mahasiswa") && (
-                <Link href="/statistik" className="hover:text-accent-300">Statistik</Link>
-              )}
-              <Link href="/tentang" className="hover:text-accent-300">Tentang</Link>
-              {profile?.role === "mahasiswa" && (
-                <Link href="/dashboard/mahasiswa/upload" className="hover:text-accent-300">Unggah TA</Link>
-              )}
-              {profile?.role === "dosen" && (
-                <Link href="/dashboard/dosen" className="hover:text-accent-300">Dashboard</Link>
-              )}
-              {profile?.role === "admin" && (
-                <>
-                  <Link href="/dashboard/admin/dashboard" className="hover:text-accent-300">Dashboard</Link>
-                  <Link href="/dashboard/admin" className="hover:text-accent-300">Panel Admin</Link>
-                </>
-              )}
-              <span className="mx-1 h-4 w-px bg-primary-500" />
-              {profile ? (
-                <>
-                  <Link
-                    href={`/dashboard/${profile.role}`}
-                    className="rounded-full bg-primary-500 px-3 py-1.5 font-medium text-white hover:bg-primary-400"
-                  >
-                    {labelRole[profile.role]} · {profile.nama_lengkap.split(" ")[0]}
-                  </Link>
-                  <LogoutButton />
-                </>
-              ) : (
-                <Link href="/login" className="rounded-full bg-accent-500 px-4 py-1.5 font-medium hover:bg-accent-600">Masuk</Link>
-              )}
-            </nav>
-          </div>
-        </header>
+        <SiteHeader profile={profile} />
 
         <main>{children}</main>
 
-        <footer className="mt-16 bg-primary-800 text-primary-100">
-          <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3">
-            <div>
-              <p className="font-heading font-semibold text-white">Repository Tugas Akhir</p>
-              <p className="text-sm text-primary-300">Jurusan Teknik Otomotif · FT UNP</p>
-              <p className="mt-2 text-sm">
-                Platform digital terpusat untuk penyimpanan, pencarian, dan pengelolaan Tugas Akhir mahasiswa
-                Program Studi S1 Pendidikan Teknik Otomotif dan D3 Teknik Otomotif.
+        {/* Footer Diperbarui */}
+        <footer className="mt-16 bg-[#27376D] text-[#C1CDEB]">
+          <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-12">
+            
+            {/* Kolom 1: Info & Deskripsi */}
+            <div className="md:col-span-6 lg:col-span-6">
+              <div className="mb-4 flex items-center gap-4">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white p-1">
+                  <img src="/logo-otomotif.png" alt="Logo HIMA Teknik Otomotif UNP" className="h-full w-full object-contain" />
+                </span>
+                <div>
+                  <p className="font-heading text-lg font-bold text-white">Repositori Karya Ilmiah</p>
+                  <p className="text-sm text-[#879BD7]">Jurusan Teknik Otomotif · FT UNP</p>
+                </div>
+              </div>
+              <p className="mt-4 text-sm leading-relaxed text-[#D2DCF5]">
+                Platform digital terpusat untuk penyimpanan, pencarian, dan pengelolaan karya ilmiah
+                mahasiswa Program Studi S1 Pendidikan Teknik Otomotif dan D3 Teknik Otomotif.
               </p>
+              
+              {/* Badge Program Studi */}
+              <div className="mt-6 flex flex-wrap gap-3">
+                <span className="rounded bg-[#E77D2A] px-3 py-1.5 text-xs font-bold text-white shadow-sm">
+                  S1 Pend. Teknik Otomotif
+                </span>
+                <span className="rounded bg-[#3A4B8A] border border-[#4B5EAA] px-3 py-1.5 text-xs font-medium text-[#D2DCF5]">
+                  D3 Teknik Otomotif
+                </span>
+              </div>
             </div>
-            <div>
+
+            {/* Kolom 2: Tautan Cepat */}
+            <div className="md:col-span-3 lg:col-span-3">
               <p className="font-heading font-semibold text-white">Tautan Cepat</p>
-              <ul className="mt-2 space-y-1 text-sm">
-                <li><Link href="/">Beranda</Link></li>
-                <li><Link href="/repositori">Jelajahi Repositori</Link></li>
-                <li><Link href="/dashboard/mahasiswa/upload">Unggah Tugas Akhir</Link></li>
-                <li><Link href="/tentang">Tentang Jurusan</Link></li>
+              <ul className="mt-5 space-y-4 text-sm">
+                <li><a href="/" className="transition-colors hover:text-white">Beranda</a></li>
+                <li><a href="/repositori" className="transition-colors hover:text-white">Jelajahi Repositori</a></li>
+                <li><a href="/dashboard/mahasiswa/upload" className="transition-colors hover:text-white">Unggah Karya</a></li>
+                <li><a href="/tentang" className="transition-colors hover:text-white">Tentang Jurusan</a></li>
               </ul>
             </div>
-            <div>
+
+            {/* Kolom 3: Kontak */}
+            <div className="md:col-span-3 lg:col-span-3">
               <p className="font-heading font-semibold text-white">Kontak</p>
-              <p className="mt-2 text-sm">Gedung Teknik Otomotif, Jl. Prof. Dr. Hamka, Air Tawar Barat, Padang</p>
+              <div className="mt-5 space-y-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <svg className="mt-0.5 h-5 w-5 shrink-0 text-[#879BD7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>
+                    Jurusan Teknik Otomotif, Fakultas Teknik, Universitas Negeri Padang, Kampus UNP Air Tawar, Jl. Prof. Dr. Hamka, Padang<br />
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <svg className="h-5 w-5 shrink-0 text-[#879BD7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>otomotif@ft.unp.ac.id</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center justify-center gap-2 border-t border-primary-700 py-4 text-center text-xs text-primary-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-green-400" /> Sistem aktif ·
-            © {new Date().getFullYear()} Jurusan Teknik Otomotif, Fakultas Teknik, Universitas Negeri Padang
+
+          {/* Bottom Bar: Copyright & System Status */}
+          <div className="mx-auto max-w-6xl px-4">
+            <div className="flex flex-col-reverse items-center justify-between gap-4 border-t border-[#3A4B8A] py-6 text-xs text-[#879BD7] sm:flex-row">
+              <p>© {new Date().getFullYear()} Jurusan Teknik Otomotif, Fakultas Teknik, Universitas Negeri Padang</p>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-[#34D399]" /> 
+                <span>Sistem aktif · v1.0.0</span>
+              </div>
+            </div>
           </div>
         </footer>
       </body>

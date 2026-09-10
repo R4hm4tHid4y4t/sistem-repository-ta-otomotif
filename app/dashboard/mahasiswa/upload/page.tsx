@@ -10,9 +10,9 @@ export default async function UploadTAPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h1 className="text-xl font-semibold text-primary-800">Unggah Tugas Akhir</h1>
+      <h1 className="text-xl font-semibold text-primary-800">Unggah Karya</h1>
       <p className="mt-1 text-sm text-slate-500">
-        TA yang sudah diunggah akan langsung tayang di repositori tanpa proses review.
+        Karya yang sudah diunggah akan langsung tayang di repositori tanpa proses review.
       </p>
       <UploadWizard kategoriList={kategoriList ?? []} dosenList={dosenList ?? []} />
     </div>
