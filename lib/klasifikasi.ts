@@ -6,7 +6,7 @@ export const LABEL_JENIS_DOC: Record<JenisDoc, string> = {
   ta: "Tugas Akhir",
   jurnal: "Jurnal",
   laporan_pkl: "Laporan PKL",
-  laporan_praktek_industri: "Laporan Praktek Industri",
+  laporan_praktek_industri: "Laporan Praktik Lapangan Industri (PLI)",
 };
 
 export const JENIS_DOC_PER_PRODI: Record<Prodi, JenisDoc[]> = {

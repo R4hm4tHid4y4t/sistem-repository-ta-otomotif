@@ -31,6 +31,14 @@ export async function uploadTugasAkhir(formData: FormData) {
   const dosen_penguji_1_id = (formData.get("dosen_penguji_1_id") as string) || null;
   const dosen_penguji_2_id = (formData.get("dosen_penguji_2_id") as string) || null;
   const dosen_penguji_3_id = (formData.get("dosen_penguji_3_id") as string) || null;
+  const nama_perusahaan = (formData.get("nama_perusahaan") as string) || null;
+  const alamat_perusahaan = (formData.get("alamat_perusahaan") as string) || null;
+  const nama_pembimbing_lapangan = (formData.get("nama_pembimbing_lapangan") as string) || null;
+  const jabatan_pembimbing_lapangan = (formData.get("jabatan_pembimbing_lapangan") as string) || null;
+  const koordinator_pli_id = (formData.get("koordinator_pli_id") as string) || null;
+  const tanggal_mulai_pli = (formData.get("tanggal_mulai_pli") as string) || null;
+  const tanggal_selesai_pli = (formData.get("tanggal_selesai_pli") as string) || null;
+  const semester_pelaksanaan = (formData.get("semester_pelaksanaan") as string) || null;
 
   if (!file || file.size === 0) throw new Error("File PDF wajib diunggah.");
 
@@ -56,6 +64,14 @@ export async function uploadTugasAkhir(formData: FormData) {
     dosen_penguji_1_id,
     dosen_penguji_2_id,
     dosen_penguji_3_id,
+    nama_perusahaan,
+    alamat_perusahaan,
+    nama_pembimbing_lapangan,
+    jabatan_pembimbing_lapangan,
+    koordinator_pli_id,
+    tanggal_mulai_pli,
+    tanggal_selesai_pli,
+    semester_pelaksanaan,
     tahun,
     mahasiswa_id: user.id,
     file_path: filePath,

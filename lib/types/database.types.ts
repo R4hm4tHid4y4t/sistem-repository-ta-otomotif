@@ -50,6 +50,14 @@ export interface TugasAkhir {
   dosen_penguji_1_id: string | null;
   dosen_penguji_2_id: string | null;
   dosen_penguji_3_id: string | null;
+  nama_perusahaan: string | null;
+  alamat_perusahaan: string | null;
+  nama_pembimbing_lapangan: string | null;
+  jabatan_pembimbing_lapangan: string | null;
+  koordinator_pli_id: string | null;
+  tanggal_mulai_pli: string | null;
+  tanggal_selesai_pli: string | null;
+  semester_pelaksanaan: string | null;
   kategori_id: string | null;
   status_verifikasi: StatusVerifikasiTA;
   catatan_verifikasi: string | null;

@@ -12,6 +12,16 @@ type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
 const LANGKAH = ["Data Karya", "Upload File", "Review & Submit"];
 type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3";
 
+function opsiSemester() {
+  const now = new Date().getFullYear();
+  const opts: string[] = [];
+  for (let y = now - 2; y <= now + 1; y++) {
+    opts.push(`Ganjil ${y}/${y + 1}`);
+    opts.push(`Genap ${y}/${y + 1}`);
+  }
+  return opts;
+}
+
 export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Kategori[]; dosenList: Dosen[] }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -35,6 +45,18 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
   const [penguji2, setPenguji2] = useState("");
   const [penguji3, setPenguji3] = useState("");
   const [file, setFile] = useState<File | null>(null);
+
+  // Field khusus PLI
+  const [namaPerusahaan, setNamaPerusahaan] = useState("");
+  const [alamatPerusahaan, setAlamatPerusahaan] = useState("");
+  const [namaPembimbingLapangan, setNamaPembimbingLapangan] = useState("");
+  const [jabatanPembimbingLapangan, setJabatanPembimbingLapangan] = useState("");
+  const [koordinatorPliId, setKoordinatorPliId] = useState("");
+  const [tanggalMulai, setTanggalMulai] = useState("");
+  const [tanggalSelesai, setTanggalSelesai] = useState("");
+  const [semesterPelaksanaan, setSemesterPelaksanaan] = useState("");
+
+  const isPli = jenisDoc === "laporan_praktek_industri";
 
   function handleProdiChange(value: string) {
     const p = value as Prodi;
@@ -76,7 +98,19 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
   }
 
   function validasiLangkah1() {
-    if (!judul || !abstrak || !kategoriId || !kbk || !jenisDoc || !pembimbing1 || !penguji1) {
+    if (!jenisDoc) {
+      setError("Pilih Jenis Dokumen dulu.");
+      return false;
+    }
+    if (isPli) {
+      if (!judul || !namaPerusahaan || !alamatPerusahaan || !namaPembimbingLapangan || !jabatanPembimbingLapangan || !pembimbing1 || !tanggalMulai || !tanggalSelesai || !semesterPelaksanaan || !abstrak) {
+        setError("Lengkapi semua field bertanda * dulu ya.");
+        return false;
+      }
+      setError(null);
+      return true;
+    }
+    if (!judul || !abstrak || !kategoriId || !kbk || !pembimbing1 || !penguji1) {
       setError("Lengkapi semua field bertanda * dulu ya.");
       return false;
     }
@@ -96,26 +130,39 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
     fd.set("judul", judul);
     fd.set("abstrak", abstrak);
     fd.set("prodi", prodi);
-    fd.set("tahun", tahun);
-    fd.set("kategori_id", kategoriId);
-    fd.set("kata_kunci", kataKunci);
-    fd.set("sdgs", sdgs.join(","));
-    fd.set("kbk", kbk);
     fd.set("jenis_doc", jenisDoc);
-    fd.set("bidang", bidang);
     fd.set("dosen_pembimbing_id", pembimbing1);
-    fd.set("dosen_pembimbing_2_id", pembimbing2);
-    fd.set("dosen_penguji_1_id", penguji1);
-    fd.set("dosen_penguji_2_id", penguji2);
-    fd.set("dosen_penguji_3_id", penguji3);
     fd.set("file", file);
+
+    if (isPli) {
+      fd.set("nama_perusahaan", namaPerusahaan);
+      fd.set("alamat_perusahaan", alamatPerusahaan);
+      fd.set("nama_pembimbing_lapangan", namaPembimbingLapangan);
+      fd.set("jabatan_pembimbing_lapangan", jabatanPembimbingLapangan);
+      fd.set("koordinator_pli_id", koordinatorPliId);
+      fd.set("tanggal_mulai_pli", tanggalMulai);
+      fd.set("tanggal_selesai_pli", tanggalSelesai);
+      fd.set("semester_pelaksanaan", semesterPelaksanaan);
+      fd.set("tahun", String(new Date(tanggalSelesai).getFullYear()));
+    } else {
+      fd.set("tahun", tahun);
+      fd.set("kategori_id", kategoriId);
+      fd.set("kata_kunci", kataKunci);
+      fd.set("sdgs", sdgs.join(","));
+      fd.set("kbk", kbk);
+      fd.set("bidang", bidang);
+      fd.set("dosen_pembimbing_2_id", pembimbing2);
+      fd.set("dosen_penguji_1_id", penguji1);
+      fd.set("dosen_penguji_2_id", penguji2);
+      fd.set("dosen_penguji_3_id", penguji3);
+    }
 
     startTransition(async () => {
       try {
         await uploadTugasAkhir(fd);
         router.push("/dashboard/mahasiswa/status?uploaded=1");
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Gagal mengunggah Karya.");
+        setError(err instanceof Error ? err.message : "Gagal mengunggah karya.");
       }
     });
   }
@@ -147,14 +194,22 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
 
       {langkah === 1 && (
         <div className="space-y-4">
-          <Field label="Program Studi *">
-            <select value={prodi} onChange={(e) => handleProdiChange(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-              <option value="s1_pend_otomotif">S1 Pendidikan Teknik Otomotif</option>
-              <option value="d3_otomotif">D3 Teknik Otomotif</option>
-            </select>
-          </Field>
+          <div>
+            <h2 className="text-lg font-heading font-semibold text-primary-800">Data Karya</h2>
+            {jenisDoc && (
+              <p className="text-sm text-slate-500">
+                Isi metadata untuk <span className="font-medium">{LABEL_JENIS_DOC[jenisDoc as JenisDoc]}</span>
+              </p>
+            )}
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Program Studi *">
+              <select value={prodi} onChange={(e) => handleProdiChange(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                <option value="s1_pend_otomotif">S1 Pendidikan Teknik Otomotif</option>
+                <option value="d3_otomotif">D3 Teknik Otomotif</option>
+              </select>
+            </Field>
             <Field label="Jenis Dokumen *">
               <select value={jenisDoc} onChange={(e) => setJenisDoc(e.target.value as JenisDoc)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
                 <option value="">Pilih jenis dokumen</option>
@@ -163,101 +218,193 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
                 ))}
               </select>
             </Field>
-            <Field label="KBK (Kelompok Bidang Kajian) *">
-              <select value={kbk} onChange={(e) => setKbk(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                <option value="">Pilih KBK</option>
-                {KBK_PER_PRODI[prodi].map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
-            </Field>
           </div>
 
-          {prodi === "s1_pend_otomotif" && (
-            <Field label="Bidang *">
-              <div className="flex gap-4 text-sm">
-                <label className="flex items-center gap-2">
-                  <input type="radio" name="bidang" checked={bidang === "kependidikan"} onChange={() => setBidang("kependidikan")} />
-                  Kependidikan
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="radio" name="bidang" checked={bidang === "non_kependidikan"} onChange={() => setBidang("non_kependidikan")} />
-                  Non-Kependidikan
-                </label>
+          {isPli && (
+            <>
+              <div className="rounded-xl border border-primary-100 bg-primary-50 p-4 text-sm">
+                <p className="font-medium text-primary-800">Laporan Praktik Lapangan Industri (PLI)</p>
+                <p className="mt-1 text-primary-700">
+                  Isi metadata sesuai data yang tertera pada Halaman Pengesahan Fakultas dan Halaman Pengesahan Perusahaan di laporan Anda.
+                </p>
               </div>
-            </Field>
+
+              <Field label="Judul Laporan PLI *">
+                <input value={judul} onChange={(e) => setJudul(e.target.value)} placeholder='contoh: "Pelaksanaan Servis Berkala pada Mitsubishi Xpander"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Nama Perusahaan/Instansi *">
+                  <input value={namaPerusahaan} onChange={(e) => setNamaPerusahaan(e.target.value)} placeholder='contoh: "PT. Suka Fajar Khatib Sulaiman"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+                <Field label="Alamat Perusahaan *">
+                  <input value={alamatPerusahaan} onChange={(e) => setAlamatPerusahaan(e.target.value)} placeholder='contoh: "Jl. Khatib Sulaiman, Padang"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+              </div>
+
+              <div className="rounded-xl border border-accent-100 bg-accent-50 p-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-accent-700">Pembimbing dari Perusahaan</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Nama Pembimbing Lapangan *">
+                    <input value={namaPembimbingLapangan} onChange={(e) => setNamaPembimbingLapangan(e.target.value)} placeholder='contoh: "Fauzan"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                  </Field>
+                  <Field label="Jabatan Pembimbing Lapangan *">
+                    <input value={jabatanPembimbingLapangan} onChange={(e) => setJabatanPembimbingLapangan(e.target.value)} placeholder='contoh: "Kepala Bengkel"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                  </Field>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">Sesuai Halaman Pengesahan Perusahaan.</p>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-600">Pembimbing dari Fakultas</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Dosen Pembimbing PLI *">
+                    <select value={pembimbing1} onChange={(e) => pilihDosen("pembimbing1", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                      <option value="">Pilih dosen pembimbing...</option>
+                      {dosenList.filter((d) => d.id !== koordinatorPliId).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                    </select>
+                    <p className="mt-1 text-xs text-slate-500">Sesuai Halaman Pengesahan Fakultas.</p>
+                  </Field>
+                  <Field label="Koordinator PLI (opsional)">
+                    <select value={koordinatorPliId} onChange={(e) => setKoordinatorPliId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                      <option value="">Tidak diisi / tidak tersedia</option>
+                      {dosenList.filter((d) => d.id !== pembimbing1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                    </select>
+                  </Field>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field label="Tanggal Mulai *">
+                  <input type="date" value={tanggalMulai} onChange={(e) => setTanggalMulai(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+                <Field label="Tanggal Selesai *">
+                  <input type="date" value={tanggalSelesai} onChange={(e) => setTanggalSelesai(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+                <Field label="Semester Pelaksanaan *">
+                  <select value={semesterPelaksanaan} onChange={(e) => setSemesterPelaksanaan(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih semester...</option>
+                    {opsiSemester().map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </Field>
+              </div>
+
+              <Field label="Ringkasan Kegiatan PLI *">
+                <textarea
+                  value={abstrak}
+                  onChange={(e) => setAbstrak(e.target.value)}
+                  rows={5}
+                  placeholder="Uraikan secara singkat kegiatan yang dilakukan selama PLI: apa yang dipelajari, pekerjaan utama yang dikerjakan, dan hasil/manfaat yang diperoleh..."
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+                <p className="mt-1 text-xs text-slate-500">Ringkasan ini ditampilkan sebagai abstrak laporan di halaman repository.</p>
+              </Field>
+            </>
           )}
 
-          <Field label="Judul Tugas Akhir *">
-            <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-          </Field>
-          <Field label="Abstrak *">
-            <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={5} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-          </Field>
-          <Field label="Kata Kunci (pisahkan dengan koma)">
-            <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} placeholder="mis. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-          </Field>
-          <Field label="Tahun *">
-            <input type="number" value={tahun} onChange={(e) => setTahun(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-          </Field>
-          <Field label="Kategori / Topik *">
-            <select value={kategoriId} onChange={(e) => setKategoriId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-              <option value="">Pilih kategori</option>
-              {kategoriList.map((k) => (
-                <option key={k.id} value={k.id}>{k.nama_kategori}</option>
-              ))}
-            </select>
-          </Field>
+          {jenisDoc && !isPli && (
+            <>
+              {jenisDoc === "laporan_pkl" && (
+                <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
+                  Form khusus Laporan PKL belum ditentukan — sementara memakai field standar di bawah ini.
+                </p>
+              )}
 
-          <div>
-            <p className="mb-2 text-sm font-medium text-primary-800">Tag SDGs (opsional, bisa lebih dari satu)</p>
-            <div className="flex flex-wrap gap-2">
-              {DAFTAR_SDGS.map((s) => (
-                <button
-                  key={s.nomor}
-                  type="button"
-                  onClick={() => toggleSdg(s.nomor)}
-                  style={sdgs.includes(s.nomor) ? { backgroundColor: s.warna } : undefined}
-                  className={`rounded px-2 py-1 text-xs font-medium ${sdgs.includes(s.nomor) ? "text-white" : "bg-slate-100 text-slate-600"}`}
-                >
-                  {s.nomor} {s.nama}
-                </button>
-              ))}
-            </div>
-          </div>
+              <Field label="Judul *">
+                <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+              <Field label="Abstrak *">
+                <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={5} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+              <Field label="Kata Kunci (pisahkan dengan koma)">
+                <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} placeholder="mis. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+              <Field label="Tahun *">
+                <input type="number" value={tahun} onChange={(e) => setTahun(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+              <Field label="Kategori / Topik *">
+                <select value={kategoriId} onChange={(e) => setKategoriId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                  <option value="">Pilih kategori</option>
+                  {kategoriList.map((k) => (
+                    <option key={k.id} value={k.id}>{k.nama_kategori}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="KBK (Kelompok Bidang Kajian) *">
+                <select value={kbk} onChange={(e) => setKbk(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                  <option value="">Pilih KBK</option>
+                  {KBK_PER_PRODI[prodi].map((k) => (
+                    <option key={k} value={k}>{k}</option>
+                  ))}
+                </select>
+              </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Pembimbing I *">
-              <select value={pembimbing1} onChange={(e) => pilihDosen("pembimbing1", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                <option value="">Pilih dosen</option>
-                {opsiDosen(pembimbing1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
-              </select>
-            </Field>
-            <Field label="Pembimbing II (opsional)">
-              <select value={pembimbing2} onChange={(e) => pilihDosen("pembimbing2", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                <option value="">Pilih dosen</option>
-                {opsiDosen(pembimbing2).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
-              </select>
-            </Field>
-            <Field label="Penguji I *">
-              <select value={penguji1} onChange={(e) => pilihDosen("penguji1", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                <option value="">Pilih dosen</option>
-                {opsiDosen(penguji1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
-              </select>
-            </Field>
-            <Field label="Penguji II (opsional)">
-              <select value={penguji2} onChange={(e) => pilihDosen("penguji2", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                <option value="">Pilih dosen</option>
-                {opsiDosen(penguji2).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
-              </select>
-            </Field>
-            <Field label="Penguji III (opsional)">
-              <select value={penguji3} onChange={(e) => pilihDosen("penguji3", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                <option value="">Pilih dosen</option>
-                {opsiDosen(penguji3).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
-              </select>
-            </Field>
-          </div>
+              {prodi === "s1_pend_otomotif" && (
+                <Field label="Bidang *">
+                  <div className="flex gap-4 text-sm">
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="bidang" checked={bidang === "kependidikan"} onChange={() => setBidang("kependidikan")} />
+                      Kependidikan
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="radio" name="bidang" checked={bidang === "non_kependidikan"} onChange={() => setBidang("non_kependidikan")} />
+                      Non-Kependidikan
+                    </label>
+                  </div>
+                </Field>
+              )}
+
+              <div>
+                <p className="mb-2 text-sm font-medium text-primary-800">Tag SDGs (opsional, bisa lebih dari satu)</p>
+                <div className="flex flex-wrap gap-2">
+                  {DAFTAR_SDGS.map((s) => (
+                    <button
+                      key={s.nomor}
+                      type="button"
+                      onClick={() => toggleSdg(s.nomor)}
+                      style={sdgs.includes(s.nomor) ? { backgroundColor: s.warna } : undefined}
+                      className={`rounded px-2 py-1 text-xs font-medium ${sdgs.includes(s.nomor) ? "text-white" : "bg-slate-100 text-slate-600"}`}
+                    >
+                      {s.nomor} {s.nama}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Pembimbing I *">
+                  <select value={pembimbing1} onChange={(e) => pilihDosen("pembimbing1", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih dosen</option>
+                    {opsiDosen(pembimbing1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                  </select>
+                </Field>
+                <Field label="Pembimbing II (opsional)">
+                  <select value={pembimbing2} onChange={(e) => pilihDosen("pembimbing2", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih dosen</option>
+                    {opsiDosen(pembimbing2).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                  </select>
+                </Field>
+                <Field label="Penguji I *">
+                  <select value={penguji1} onChange={(e) => pilihDosen("penguji1", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih dosen</option>
+                    {opsiDosen(penguji1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                  </select>
+                </Field>
+                <Field label="Penguji II (opsional)">
+                  <select value={penguji2} onChange={(e) => pilihDosen("penguji2", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih dosen</option>
+                    {opsiDosen(penguji2).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                  </select>
+                </Field>
+                <Field label="Penguji III (opsional)">
+                  <select value={penguji3} onChange={(e) => pilihDosen("penguji3", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih dosen</option>
+                    {opsiDosen(penguji3).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                  </select>
+                </Field>
+              </div>
+            </>
+          )}
 
           <div className="flex justify-end">
             <button
@@ -291,7 +438,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
             )}
           </button>
           <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-            Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD pembimbing) di dalamnya.
+            Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD) di dalamnya.
           </p>
           <div className="flex justify-between">
             <button onClick={() => setLangkah(1)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
@@ -309,22 +456,34 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
         <div className="space-y-4">
           <p className="text-sm font-medium text-primary-800">Review & Konfirmasi</p>
           <div className="space-y-2 rounded-xl border border-slate-200 p-4 text-sm">
-            <Row label="Judul" value={judul} />
-            <Row label="Program Studi" value={prodi === "s1_pend_otomotif" ? "S1 Pend. Teknik Otomotif" : "D3 Teknik Otomotif"} />
             <Row label="Jenis Dokumen" value={jenisDoc ? LABEL_JENIS_DOC[jenisDoc as JenisDoc] : "-"} />
-            <Row label="KBK" value={kbk || "-"} />
-            {prodi === "s1_pend_otomotif" && <Row label="Bidang" value={bidang === "kependidikan" ? "Kependidikan" : bidang === "non_kependidikan" ? "Non-Kependidikan" : "-"} />}
-            <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
-            <Row label="Pembimbing I" value={namaDosen(pembimbing1)} />
-            <Row label="Pembimbing II" value={pembimbing2 ? namaDosen(pembimbing2) : "-"} />
-            <Row label="Penguji I" value={namaDosen(penguji1)} />
-            <Row label="Penguji II" value={penguji2 ? namaDosen(penguji2) : "-"} />
-            <Row label="Penguji III" value={penguji3 ? namaDosen(penguji3) : "-"} />
+            {isPli ? (
+              <>
+                <Row label="Judul Laporan PLI" value={judul} />
+                <Row label="Perusahaan/Instansi" value={namaPerusahaan} />
+                <Row label="Alamat Perusahaan" value={alamatPerusahaan} />
+                <Row label="Pembimbing Lapangan" value={`${namaPembimbingLapangan} — ${jabatanPembimbingLapangan}`} />
+                <Row label="Dosen Pembimbing PLI" value={namaDosen(pembimbing1)} />
+                <Row label="Koordinator PLI" value={koordinatorPliId ? namaDosen(koordinatorPliId) : "-"} />
+                <Row label="Periode" value={`${tanggalMulai || "-"} s.d. ${tanggalSelesai || "-"}`} />
+                <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
+              </>
+            ) : (
+              <>
+                <Row label="Judul" value={judul} />
+                <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
+                <Row label="Pembimbing I" value={namaDosen(pembimbing1)} />
+                <Row label="Pembimbing II" value={pembimbing2 ? namaDosen(pembimbing2) : "-"} />
+                <Row label="Penguji I" value={namaDosen(penguji1)} />
+                <Row label="Penguji II" value={penguji2 ? namaDosen(penguji2) : "-"} />
+                <Row label="Penguji III" value={penguji3 ? namaDosen(penguji3) : "-"} />
+                <Row label="SDGs" value={sdgs.length ? sdgs.join(", ") : "-"} />
+              </>
+            )}
             <Row label="File" value={file?.name ?? "-"} />
-            <Row label="SDGs" value={sdgs.length ? sdgs.join(", ") : "-"} />
           </div>
           <p className="rounded-lg bg-primary-50 p-3 text-sm text-primary-700">
-            Dengan menekan "Unggah & Terbitkan", Karya Anda akan <strong>langsung tayang di repositori</strong> dan dapat diakses oleh seluruh civitas akademika.
+            Dengan menekan "Unggah & Terbitkan", karya Anda akan <strong>langsung tayang di repositori</strong> dan dapat diakses oleh seluruh civitas akademika.
           </p>
           <div className="flex justify-between">
             <button onClick={() => setLangkah(2)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
