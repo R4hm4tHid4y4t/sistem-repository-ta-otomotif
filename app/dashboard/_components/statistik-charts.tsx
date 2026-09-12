@@ -1,17 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { StatistikChartsClient } from "./statistik-charts-client";
 import { LABEL_JENIS_DOC, type JenisDoc } from "@/lib/klasifikasi";
+import { getDaftarSdgs } from "@/lib/sdgs";
 
 export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }) {
   const supabase = createClient();
 
-  const [{ data: taRows }, { data: dosenRows }, { data: kategoriRows }] = await Promise.all([
+  const [{ data: taRows }, { data: dosenRows }, { data: kategoriRows }, sdgsList] = await Promise.all([
     supabase
       .from("tugas_akhir")
       .select("tahun, prodi, kategori_id, sdgs, kbk, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id")
       .eq("status_verifikasi", "diterima"),
     supabase.from("profiles").select("id, nama_lengkap").eq("role", "dosen"),
     supabase.from("kategori_topik").select("id, nama_kategori"),
+    getDaftarSdgs(),
   ]);
 
   const rows = taRows ?? [];
@@ -84,6 +86,7 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
       perPembimbing={perPembimbing}
       perPenguji={perPenguji}
       sdgCount={sdgCount}
+      sdgsList={sdgsList}
     />
   );
 }

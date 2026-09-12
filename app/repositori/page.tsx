@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { TACard } from "@/components/ta-card";
 import { FilterSelect } from "./filter-select";
-import { DAFTAR_SDGS } from "@/lib/sdgs";
+import { getDaftarSdgs } from "@/lib/sdgs";
 import { SEMUA_KBK, LABEL_JENIS_DOC, LABEL_BIDANG } from "@/lib/klasifikasi";
 
 type SP = Record<string, string | undefined>;
@@ -55,10 +55,11 @@ export default async function RepositoriPage({
 
   const { data: daftarTA } = await query;
 
-  const [{ data: kategoriList }, { data: dosenList }, { data: tahunRows }] = await Promise.all([
+  const [{ data: kategoriList }, { data: dosenList }, { data: tahunRows }, sdgsList] = await Promise.all([
     supabase.from("kategori_topik").select("id, nama_kategori").order("nama_kategori"),
     supabase.from("profiles").select("id, nama_lengkap").eq("role", "dosen").order("nama_lengkap"),
     supabase.from("tugas_akhir").select("tahun").eq("status_verifikasi", "diterima"),
+    getDaftarSdgs(),
   ]);
 
   const tahunOptions = Array.from(new Set((tahunRows ?? []).map((r) => r.tahun))).sort((a, b) => b - a);
@@ -67,8 +68,8 @@ export default async function RepositoriPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="text-2xl font-semibold text-primary-800">Jelajahi Repositori TA</h1>
-      <p className="text-sm text-slate-500">Temukan dan unduh Tugas Akhir dari seluruh angkatan mahasiswa Teknik Otomotif UNP.</p>
+      <h1 className="text-2xl font-semibold text-primary-800">Jelajahi Repositori Karya Ilmiah</h1>
+      <p className="text-sm text-slate-500">Temukan dan unduh karya ilmiah dari seluruh angkatan mahasiswa Teknik Otomotif UNP.</p>
 
       <form className="mt-4 flex overflow-hidden rounded-full border border-slate-200 bg-white shadow-sm">
         <input name="q" defaultValue={searchParams.q} placeholder="Cari judul, penulis, kata kunci..." className="flex-1 px-4 py-2.5 focus:outline-none" />
@@ -95,7 +96,7 @@ export default async function RepositoriPage({
           <div>
             <p className="mb-1 font-medium text-primary-800">Tag SDGs</p>
             <div className="flex flex-wrap gap-1">
-              {DAFTAR_SDGS.map((s) => {
+              {sdgsList.map((s) => {
                 const active = searchParams.sdg === String(s.nomor);
                 return (
                   <a
@@ -114,12 +115,12 @@ export default async function RepositoriPage({
         </aside>
 
         <div>
-          <p className="mb-3 text-sm text-slate-500">{(daftarTA ?? []).length} TA ditemukan</p>
+          <p className="mb-3 text-sm text-slate-500">{(daftarTA ?? []).length} karya ditemukan</p>
           <div className="grid gap-4 sm:grid-cols-2">
             {(daftarTA ?? []).map((ta: any) => (
-              <TACard key={ta.id} ta={ta} />
+              <TACard key={ta.id} ta={ta} sdgsList={sdgsList} />
             ))}
-            {(daftarTA ?? []).length === 0 && <p className="text-sm text-slate-500">Belum ada TA yang cocok.</p>}
+            {(daftarTA ?? []).length === 0 && <p className="text-sm text-slate-500">Belum ada karya yang cocok.</p>}
           </div>
         </div>
       </div>

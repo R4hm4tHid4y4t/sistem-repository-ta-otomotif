@@ -1,6 +1,6 @@
 import { User, Cog } from "lucide-react";
 import { KATEGORI_META } from "@/lib/kategori-icons";
-import { getSdg } from "@/lib/sdgs";
+import { cariSdg, type SdgItem } from "@/lib/sdgs";
 import { LABEL_JENIS_DOC, LABEL_BIDANG, type JenisDoc, type Bidang } from "@/lib/klasifikasi";
 
 type Dosen = { nama_lengkap: string } | null;
@@ -23,7 +23,7 @@ export type TACardData = {
   penguji3?: Dosen;
 };
 
-export function TACard({ ta }: { ta: TACardData }) {
+export function TACard({ ta, sdgsList }: { ta: TACardData; sdgsList: SdgItem[] }) {
   const meta = ta.kategori_topik ? KATEGORI_META[ta.kategori_topik.nama_kategori] : undefined;
   const Icon = meta?.icon ?? Cog;
 
@@ -70,7 +70,7 @@ export function TACard({ ta }: { ta: TACardData }) {
       {ta.sdgs?.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
           {ta.sdgs.map((n) => {
-            const sdg = getSdg(n);
+            const sdg = cariSdg(sdgsList, n);
             if (!sdg) return null;
             return (
               <span key={n} style={{ backgroundColor: sdg.warna }} className="rounded px-1.5 py-0.5 text-[10px] font-medium text-white">

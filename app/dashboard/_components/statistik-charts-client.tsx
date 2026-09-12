@@ -1,7 +1,8 @@
 "use client";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { DAFTAR_SDGS } from "@/lib/sdgs";
+type Sdg = { nomor: number; nama: string; warna: string; deskripsi: string | null };
+
 
 const WARNA_DONUT = ["#22406b", "#EA6A17", "#5c80a8", "#f78d2e", "#8ea7c7", "#c2530f", "#b7c7dd", "#8f3d0c"];
 
@@ -17,6 +18,7 @@ export function StatistikChartsClient({
   perPembimbing,
   perPenguji,
   sdgCount,
+  sdgsList,
 }: {
   lengkap: boolean;
   totalTA: number;
@@ -27,6 +29,7 @@ export function StatistikChartsClient({
   perPembimbing: Sederhana[];
   perPenguji: Sederhana[];
   sdgCount: Record<number, number>;
+  sdgsList: Sdg[];
 }) {
   return (
     <div className="space-y-6">
@@ -147,7 +150,7 @@ export function StatistikChartsClient({
       <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
         <p className="mb-3 text-sm font-medium text-primary-800">Kontribusi TA terhadap SDGs</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {DAFTAR_SDGS.map((s) => (
+          {sdgsList.map((s) => (
             <div key={s.nomor} style={{ backgroundColor: s.warna }} className="rounded-xl p-3 text-white">
               <p className="text-xl font-bold">{sdgCount[s.nomor] ?? 0}</p>
               <p className="text-xs">{s.nomor} {s.nama}</p>

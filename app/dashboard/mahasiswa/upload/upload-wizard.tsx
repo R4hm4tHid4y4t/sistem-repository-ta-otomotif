@@ -3,11 +3,11 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { uploadTugasAkhir } from "@/lib/actions/ta";
-import { DAFTAR_SDGS } from "@/lib/sdgs";
 import { JENIS_DOC_PER_PRODI, KBK_PER_PRODI, LABEL_JENIS_DOC, type Prodi, type JenisDoc } from "@/lib/klasifikasi";
 
 type Kategori = { id: string; nama_kategori: string };
 type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
+type Sdg = { nomor: number; nama: string; warna: string; deskripsi: string | null };
 
 const LANGKAH = ["Data Karya", "Upload File", "Review & Submit"];
 type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3";
@@ -22,7 +22,7 @@ function opsiSemester() {
   return opts;
 }
 
-export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Kategori[]; dosenList: Dosen[] }) {
+export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriList: Kategori[]; dosenList: Dosen[]; sdgsList: Sdg[] }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [langkah, setLangkah] = useState(1);
@@ -357,7 +357,7 @@ export function UploadWizard({ kategoriList, dosenList }: { kategoriList: Katego
               <div>
                 <p className="mb-2 text-sm font-medium text-primary-800">Tag SDGs (opsional, bisa lebih dari satu)</p>
                 <div className="flex flex-wrap gap-2">
-                  {DAFTAR_SDGS.map((s) => (
+                  {sdgsList.map((s) => (
                     <button
                       key={s.nomor}
                       type="button"
