@@ -35,6 +35,7 @@ export async function uploadTugasAkhir(formData: FormData) {
   const alamat_perusahaan = (formData.get("alamat_perusahaan") as string) || null;
   const nama_pembimbing_lapangan = (formData.get("nama_pembimbing_lapangan") as string) || null;
   const jabatan_pembimbing_lapangan = (formData.get("jabatan_pembimbing_lapangan") as string) || null;
+  const nama_kepala_sekolah = (formData.get("nama_kepala_sekolah") as string) || null;
   const koordinator_pli_id = (formData.get("koordinator_pli_id") as string) || null;
   const tanggal_mulai_pli = (formData.get("tanggal_mulai_pli") as string) || null;
   const tanggal_selesai_pli = (formData.get("tanggal_selesai_pli") as string) || null;
@@ -49,35 +50,40 @@ export async function uploadTugasAkhir(formData: FormData) {
     .upload(filePath, file, { contentType: "application/pdf", upsert: false });
   if (uploadError) throw uploadError;
 
-  const { error: insertError } = await supabase.from("tugas_akhir").insert({
-    judul,
-    abstrak,
-    prodi,
-    kata_kunci,
-    sdgs,
-    kbk,
-    jenis_doc,
-    bidang,
-    kategori_id,
-    dosen_pembimbing_id,
-    dosen_pembimbing_2_id,
-    dosen_penguji_1_id,
-    dosen_penguji_2_id,
-    dosen_penguji_3_id,
-    nama_perusahaan,
-    alamat_perusahaan,
-    nama_pembimbing_lapangan,
-    jabatan_pembimbing_lapangan,
-    koordinator_pli_id,
-    tanggal_mulai_pli,
-    tanggal_selesai_pli,
-    semester_pelaksanaan,
-    tahun,
-    mahasiswa_id: user.id,
-    file_path: filePath,
-    file_size_kb: Math.round(file.size / 1024),
-    status_verifikasi: "diterima",
-  });
+   const { data: inserted, error: insertError } = await supabase
+    .from("tugas_akhir")
+    .insert({
+      judul,
+      abstrak,
+      prodi,
+      kata_kunci,
+      sdgs,
+      kbk,
+      jenis_doc,
+      bidang,
+      kategori_id,
+      dosen_pembimbing_id,
+      dosen_pembimbing_2_id,
+      dosen_penguji_1_id,
+      dosen_penguji_2_id,
+      dosen_penguji_3_id,
+      nama_perusahaan,
+      alamat_perusahaan,
+      nama_kepala_sekolah,
+      nama_pembimbing_lapangan,
+      jabatan_pembimbing_lapangan,
+      koordinator_pli_id,
+      tanggal_mulai_pli,
+      tanggal_selesai_pli,
+      semester_pelaksanaan,
+      tahun,
+      mahasiswa_id: user.id,
+      file_path: filePath,
+      file_size_kb: Math.round(file.size / 1024),
+      status_verifikasi: "diterima",
+    })
+    .select("id")
+    .single();
   if (insertError) throw insertError;
 
   await supabase.from("log_aktivitas").insert({
@@ -87,6 +93,7 @@ export async function uploadTugasAkhir(formData: FormData) {
   });
 
   revalidatePath("/dashboard/mahasiswa/status");
+  return { id: inserted.id };
 }
 
 export async function verifikasiTugasAkhir(

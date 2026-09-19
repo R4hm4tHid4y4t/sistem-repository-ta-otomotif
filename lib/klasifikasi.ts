@@ -5,7 +5,7 @@ export type Bidang = "kependidikan" | "non_kependidikan";
 export const LABEL_JENIS_DOC: Record<JenisDoc, string> = {
   ta: "Tugas Akhir",
   jurnal: "Jurnal",
-  laporan_pkl: "Laporan PKL",
+  laporan_pkl: "Laporan Praktik Lapangan Kependidikan (PLK)",
   laporan_praktek_industri: "Laporan Praktik Lapangan Industri (PLI)",
 };
 

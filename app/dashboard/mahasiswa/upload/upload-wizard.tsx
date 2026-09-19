@@ -3,31 +3,32 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { uploadTugasAkhir } from "@/lib/actions/ta";
+ import type { SdgItem } from "@/lib/sdgs";
 import { JENIS_DOC_PER_PRODI, KBK_PER_PRODI, LABEL_JENIS_DOC, type Prodi, type JenisDoc } from "@/lib/klasifikasi";
 
 type Kategori = { id: string; nama_kategori: string };
 type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
-type Sdg = { nomor: number; nama: string; warna: string; deskripsi: string | null };
-
-const LANGKAH = ["Data Karya", "Upload File", "Review & Submit"];
 type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3";
 
 function opsiSemester() {
-  const now = new Date().getFullYear();
+  const tahunAkhir = new Date().getFullYear() + 1;
+  const tahunAwal = 2015;
   const opts: string[] = [];
-  for (let y = now - 2; y <= now + 1; y++) {
-    opts.push(`Ganjil ${y}/${y + 1}`);
+  for (let y = tahunAkhir; y >= tahunAwal; y--) {
     opts.push(`Genap ${y}/${y + 1}`);
+    opts.push(`Ganjil ${y}/${y + 1}`);
   }
   return opts;
 }
 
-export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriList: Kategori[]; dosenList: Dosen[]; sdgsList: Sdg[] }) {
+export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriList: Kategori[]; dosenList: Dosen[]; sdgsList: SdgItem[] }) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [langkah, setLangkah] = useState(1);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadedId, setUploadedId] = useState<string | null>(null);
 
   const [judul, setJudul] = useState("");
   const [abstrak, setAbstrak] = useState("");
@@ -46,17 +47,23 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const [penguji3, setPenguji3] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
-  // Field khusus PLI
-  const [namaPerusahaan, setNamaPerusahaan] = useState("");
-  const [alamatPerusahaan, setAlamatPerusahaan] = useState("");
-  const [namaPembimbingLapangan, setNamaPembimbingLapangan] = useState("");
-  const [jabatanPembimbingLapangan, setJabatanPembimbingLapangan] = useState("");
+  // Field bersama PLI & PLK (instansi/sekolah, pembimbing lapangan, waktu)
+  const [namaPerusahaan, setNamaPerusahaan] = useState(""); // = "Nama Sekolah" untuk PLK
+  const [alamatPerusahaan, setAlamatPerusahaan] = useState(""); // = "Alamat Sekolah" untuk PLK
+  const [namaKepalaSekolah, setNamaKepalaSekolah] = useState(""); // khusus PLK
+  const [namaPembimbingLapangan, setNamaPembimbingLapangan] = useState(""); // = "Nama Guru Pamong" untuk PLK
+  const [jabatanPembimbingLapangan, setJabatanPembimbingLapangan] = useState(""); // = "Jabatan Guru Pamong" untuk PLK
   const [koordinatorPliId, setKoordinatorPliId] = useState("");
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
   const [semesterPelaksanaan, setSemesterPelaksanaan] = useState("");
 
   const isPli = jenisDoc === "laporan_praktek_industri";
+  const isPlk = jenisDoc === "laporan_pkl";
+
+  const stepLabels = isPlk
+    ? ["Metadata", "Pembimbing & Waktu", "Upload File", "Review & Submit", "Sukses"]
+    : ["Data Karya", "Upload File", "Review & Submit"];
 
   function handleProdiChange(value: string) {
     const p = value as Prodi;
@@ -97,7 +104,24 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     return dosenList.find((d) => d.id === id)?.nama_lengkap ?? "-";
   }
 
-  function validasiLangkah1() {
+  function handleFileSelected(selected: File | null) {
+    if (!selected) return;
+    if (selected.type !== "application/pdf") {
+      setError("Hanya file berformat PDF yang diperbolehkan.");
+      return;
+    }
+    setError(null);
+    setFile(selected);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragActive(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) handleFileSelected(dropped);
+  }
+
+  function validasiMetadataStandar() {
     if (!jenisDoc) {
       setError("Pilih Jenis Dokumen dulu.");
       return false;
@@ -122,6 +146,28 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     return true;
   }
 
+  function validasiMetadataPlk() {
+    if (!jenisDoc) {
+      setError("Pilih Jenis Dokumen dulu.");
+      return false;
+    }
+    if (!judul || !namaPerusahaan || !alamatPerusahaan || !namaKepalaSekolah || !namaPembimbingLapangan || !jabatanPembimbingLapangan) {
+      setError("Lengkapi semua field bertanda * dulu ya.");
+      return false;
+    }
+    setError(null);
+    return true;
+  }
+
+  function validasiPembimbingWaktuPlk() {
+    if (!tanggalMulai || !tanggalSelesai || !semesterPelaksanaan || !abstrak) {
+      setError("Lengkapi semua field bertanda * dulu ya.");
+      return false;
+    }
+    setError(null);
+    return true;
+  }
+
   function handleSubmit() {
     if (!file) return setError("File PDF wajib diunggah.");
     setError(null);
@@ -134,7 +180,18 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     fd.set("dosen_pembimbing_id", pembimbing1);
     fd.set("file", file);
 
-    if (isPli) {
+    if (isPlk) {
+      fd.set("nama_perusahaan", namaPerusahaan);
+      fd.set("alamat_perusahaan", alamatPerusahaan);
+      fd.set("nama_kepala_sekolah", namaKepalaSekolah);
+      fd.set("nama_pembimbing_lapangan", namaPembimbingLapangan);
+      fd.set("jabatan_pembimbing_lapangan", jabatanPembimbingLapangan);
+      fd.set("koordinator_pli_id", koordinatorPliId);
+      fd.set("tanggal_mulai_pli", tanggalMulai);
+      fd.set("tanggal_selesai_pli", tanggalSelesai);
+      fd.set("semester_pelaksanaan", semesterPelaksanaan);
+      fd.set("tahun", String(new Date(tanggalSelesai).getFullYear()));
+    } else if (isPli) {
       fd.set("nama_perusahaan", namaPerusahaan);
       fd.set("alamat_perusahaan", alamatPerusahaan);
       fd.set("nama_pembimbing_lapangan", namaPembimbingLapangan);
@@ -159,32 +216,136 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
     startTransition(async () => {
       try {
-        await uploadTugasAkhir(fd);
-        router.push("/dashboard/mahasiswa/status?uploaded=1");
+        const hasil = await uploadTugasAkhir(fd);
+        if (isPlk) {
+          router.push(`/dashboard/mahasiswa/upload/berhasil${hasil?.id ? `?id=${hasil.id}` : ""}`);
+        } else {
+          router.push("/dashboard/mahasiswa/status?uploaded=1");
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Gagal mengunggah karya.");
       }
     });
   }
 
+  function renderUploadStep(nomorSebelum: number, nomorSesudah: number) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm font-medium text-primary-800">Upload File Dokumen</p>
+        <input ref={fileInputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)} />
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+          onDragLeave={() => setDragActive(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`flex w-full cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed py-10 text-center transition-colors ${
+            dragActive ? "border-accent-500 bg-accent-50" : "border-slate-300 hover:border-accent-400"
+          }`}
+        >
+          <span className="text-3xl">📄</span>
+          {file ? (
+            <>
+              <span className="font-medium text-primary-700">{file.name}</span>
+              <span className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB · PDF</span>
+              <span className="text-xs text-accent-600">Ganti file</span>
+            </>
+          ) : (
+            <span className="text-sm text-slate-500">Drag & drop file PDF ke sini, atau klik untuk memilih</span>
+          )}
+        </div>
+        <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
+          Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD) di dalamnya. Hanya file berformat PDF yang diterima.
+        </p>
+        <div className="flex justify-between">
+          <button onClick={() => setLangkah(nomorSebelum)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
+          <button
+            onClick={() => (file ? setLangkah(nomorSesudah) : setError("File PDF wajib diunggah."))}
+            className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
+          >
+            Lanjut →
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function renderReviewStep(nomorSebelum: number) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm font-medium text-primary-800">Review & Konfirmasi</p>
+        <div className="space-y-2 rounded-xl border border-slate-200 p-4 text-sm">
+          <Row label="Jenis Dokumen" value={jenisDoc ? LABEL_JENIS_DOC[jenisDoc as JenisDoc] : "-"} />
+          {isPlk ? (
+            <>
+              <Row label="Judul Laporan PLK" value={judul} />
+              <Row label="Nama Sekolah" value={namaPerusahaan} />
+              <Row label="Alamat Sekolah" value={alamatPerusahaan} />
+              <Row label="Kepala Sekolah" value={namaKepalaSekolah} />
+              <Row label="Guru Pamong" value={`${namaPembimbingLapangan} — ${jabatanPembimbingLapangan}`} />
+              <Row label="Koordinator PPLK/UPPL" value={koordinatorPliId ? namaDosen(koordinatorPliId) : "-"} />
+              <Row label="Periode" value={`${tanggalMulai || "-"} s.d. ${tanggalSelesai || "-"}`} />
+              <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
+            </>
+          ) : isPli ? (
+            <>
+              <Row label="Judul Laporan PLI" value={judul} />
+              <Row label="Perusahaan/Instansi" value={namaPerusahaan} />
+              <Row label="Alamat Perusahaan" value={alamatPerusahaan} />
+              <Row label="Pembimbing Lapangan" value={`${namaPembimbingLapangan} — ${jabatanPembimbingLapangan}`} />
+              <Row label="Dosen Pembimbing PLI" value={namaDosen(pembimbing1)} />
+              <Row label="Koordinator PLI" value={koordinatorPliId ? namaDosen(koordinatorPliId) : "-"} />
+              <Row label="Periode" value={`${tanggalMulai || "-"} s.d. ${tanggalSelesai || "-"}`} />
+              <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
+            </>
+          ) : (
+            <>
+              <Row label="Judul" value={judul} />
+              <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
+              <Row label="Pembimbing I" value={namaDosen(pembimbing1)} />
+              <Row label="Pembimbing II" value={pembimbing2 ? namaDosen(pembimbing2) : "-"} />
+              <Row label="Penguji I" value={namaDosen(penguji1)} />
+              <Row label="Penguji II" value={penguji2 ? namaDosen(penguji2) : "-"} />
+              <Row label="Penguji III" value={penguji3 ? namaDosen(penguji3) : "-"} />
+              <Row label="SDGs" value={sdgs.length ? sdgs.join(", ") : "-"} />
+            </>
+          )}
+          <Row label="File" value={file?.name ?? "-"} />
+        </div>
+        <p className="rounded-lg bg-primary-50 p-3 text-sm text-primary-700">
+          Dengan menekan "Unggah & Terbitkan", karya Anda akan <strong>langsung tayang di repositori</strong> dan dapat diakses oleh seluruh civitas akademika.
+        </p>
+        <div className="flex justify-between">
+          <button onClick={() => setLangkah(nomorSebelum)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
+          <button
+            onClick={handleSubmit}
+            disabled={isPending}
+            className="rounded-lg bg-accent-500 px-5 py-2 font-medium text-white hover:bg-accent-600 disabled:opacity-50"
+          >
+            {isPending ? "Mengunggah..." : "Unggah & Terbitkan ✓"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center gap-2 text-sm">
-        {LANGKAH.map((label, i) => {
+        {stepLabels.map((label, i) => {
           const n = i + 1;
           const aktif = n === langkah;
           const selesai = n < langkah;
           return (
             <div key={label} className="flex flex-1 items-center gap-2">
               <span
-                className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium ${
                   selesai ? "bg-accent-500 text-white" : aktif ? "border-2 border-accent-500 text-accent-600" : "border border-slate-300 text-slate-400"
                 }`}
               >
                 {selesai ? "✓" : n}
               </span>
-              <span className={aktif ? "font-medium text-primary-800" : "text-slate-400"}>{label}</span>
-              {n < 3 && <span className="mx-1 h-px flex-1 bg-slate-200" />}
+              <span className={`whitespace-nowrap ${aktif ? "font-medium text-primary-800" : "text-slate-400"}`}>{label}</span>
+              {n < stepLabels.length && <span className="mx-1 h-px flex-1 bg-slate-200" />}
             </div>
           );
         })}
@@ -192,10 +353,11 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
       {error && <p className="mb-4 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">{error}</p>}
 
+      {/* LANGKAH 1: Metadata / Data Karya (semua jenis) */}
       {langkah === 1 && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-lg font-heading font-semibold text-primary-800">Data Karya</h2>
+            <h2 className="text-lg font-heading font-semibold text-primary-800">{stepLabels[0]}</h2>
             {jenisDoc && (
               <p className="text-sm text-slate-500">
                 Isi metadata untuk <span className="font-medium">{LABEL_JENIS_DOC[jenisDoc as JenisDoc]}</span>
@@ -219,6 +381,47 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               </select>
             </Field>
           </div>
+
+          {isPlk && (
+            <>
+              <div className="rounded-xl border border-primary-100 bg-primary-50 p-4 text-sm">
+                <p className="font-medium text-primary-800">Laporan Praktik Lapangan Kependidikan (PLK)</p>
+                <p className="mt-1 text-primary-700">Isi metadata sesuai isi laporan PPLK Anda (Bab I dan halaman pengesahan).</p>
+              </div>
+
+              <Field label="Judul Laporan PLK *">
+                <input value={judul} onChange={(e) => setJudul(e.target.value)} placeholder='contoh: "Laporan Pelaksanaan PPLK di SMK Negeri 1 Padang"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <Field label="Nama Sekolah *">
+                <input value={namaPerusahaan} onChange={(e) => setNamaPerusahaan(e.target.value)} placeholder='contoh: "SMK Negeri 1 Padang"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <Field label="Alamat Sekolah *">
+                <textarea
+                  value={alamatPerusahaan}
+                  onChange={(e) => setAlamatPerusahaan(e.target.value)}
+                  rows={2}
+                  placeholder="Jl. ..., Kel. ..., Kec. ..., Kota, Kode Pos"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+                <p className="mt-1 text-xs text-slate-500">Sertakan kelurahan, kecamatan, dan kode pos.</p>
+              </Field>
+
+              <Field label="Nama Kepala Sekolah *">
+                <input value={namaKepalaSekolah} onChange={(e) => setNamaKepalaSekolah(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Nama Guru Pamong *">
+                  <input value={namaPembimbingLapangan} onChange={(e) => setNamaPembimbingLapangan(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+                <Field label="Jabatan Guru Pamong *">
+                  <input value={jabatanPembimbingLapangan} onChange={(e) => setJabatanPembimbingLapangan(e.target.value)} placeholder='contoh: "Guru Produktif TKR"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+              </div>
+            </>
+          )}
 
           {isPli && (
             <>
@@ -302,14 +505,9 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
             </>
           )}
 
-          {jenisDoc && !isPli && (
+          {jenisDoc && !isPli && !isPlk && (
             <>
-              {jenisDoc === "laporan_pkl" && (
-                <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-                  Form khusus Laporan PKL belum ditentukan — sementara memakai field standar di bawah ini.
-                </p>
-              )}
-
+              {false && <p />}
               <Field label="Judul *">
                 <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
               </Field>
@@ -408,7 +606,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
           <div className="flex justify-end">
             <button
-              onClick={() => validasiLangkah1() && setLangkah(2)}
+              onClick={() => {
+                const ok = isPlk ? validasiMetadataPlk() : validasiMetadataStandar();
+                if (ok) setLangkah(2);
+              }}
               className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
             >
               Lanjut →
@@ -417,83 +618,65 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
         </div>
       )}
 
-      {langkah === 2 && (
+      {/* LANGKAH 2 */}
+      {langkah === 2 && isPlk && (
         <div className="space-y-4">
-          <p className="text-sm font-medium text-primary-800">Upload File Dokumen</p>
-          <input ref={fileInputRef} type="file" accept="application/pdf" hidden onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex w-full flex-col items-center gap-2 rounded-xl border-2 border-dashed border-slate-300 py-10 text-center hover:border-accent-400"
-          >
-            <span className="text-3xl">📄</span>
-            {file ? (
-              <>
-                <span className="font-medium text-primary-700">{file.name}</span>
-                <span className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB · PDF</span>
-                <span className="text-xs text-accent-600">Ganti file</span>
-              </>
-            ) : (
-              <span className="text-sm text-slate-500">Klik untuk pilih file PDF</span>
-            )}
-          </button>
-          <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-            Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD) di dalamnya.
-          </p>
+          <h2 className="text-lg font-heading font-semibold text-primary-800">Pembimbing & Waktu</h2>
+          <Field label="Koordinator PPLK/UPPL (opsional)">
+            <select value={koordinatorPliId} onChange={(e) => setKoordinatorPliId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+              <option value="">Tidak diisi / tidak tersedia</option>
+              {dosenList.map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+            </select>
+          </Field>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label="Tanggal Mulai *">
+              <input type="date" value={tanggalMulai} onChange={(e) => setTanggalMulai(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+            </Field>
+            <Field label="Tanggal Selesai *">
+              <input type="date" value={tanggalSelesai} onChange={(e) => setTanggalSelesai(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+            </Field>
+            <Field label="Semester Pelaksanaan *">
+              <select value={semesterPelaksanaan} onChange={(e) => setSemesterPelaksanaan(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                <option value="">Pilih semester...</option>
+                {opsiSemester().map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </Field>
+          </div>
+          <Field label="Ringkasan Kegiatan PPLK *">
+            <textarea
+              value={abstrak}
+              onChange={(e) => setAbstrak(e.target.value)}
+              rows={5}
+              placeholder="Uraikan kegiatan PPLK sesuai isi Bab II dan III laporan Anda: observasi sekolah, praktik mengajar, dan hasil/refleksi yang diperoleh..."
+              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+            />
+          </Field>
           <div className="flex justify-between">
             <button onClick={() => setLangkah(1)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
-            <button
-              onClick={() => (file ? setLangkah(3) : setError("File PDF wajib diunggah."))}
-              className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
-            >
-              Lanjut →
-            </button>
+            <button onClick={() => validasiPembimbingWaktuPlk() && setLangkah(3)} className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600">Lanjut →</button>
           </div>
         </div>
       )}
+      {langkah === 2 && !isPlk && renderUploadStep(1, 3)}
 
-      {langkah === 3 && (
-        <div className="space-y-4">
-          <p className="text-sm font-medium text-primary-800">Review & Konfirmasi</p>
-          <div className="space-y-2 rounded-xl border border-slate-200 p-4 text-sm">
-            <Row label="Jenis Dokumen" value={jenisDoc ? LABEL_JENIS_DOC[jenisDoc as JenisDoc] : "-"} />
-            {isPli ? (
-              <>
-                <Row label="Judul Laporan PLI" value={judul} />
-                <Row label="Perusahaan/Instansi" value={namaPerusahaan} />
-                <Row label="Alamat Perusahaan" value={alamatPerusahaan} />
-                <Row label="Pembimbing Lapangan" value={`${namaPembimbingLapangan} — ${jabatanPembimbingLapangan}`} />
-                <Row label="Dosen Pembimbing PLI" value={namaDosen(pembimbing1)} />
-                <Row label="Koordinator PLI" value={koordinatorPliId ? namaDosen(koordinatorPliId) : "-"} />
-                <Row label="Periode" value={`${tanggalMulai || "-"} s.d. ${tanggalSelesai || "-"}`} />
-                <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
-              </>
-            ) : (
-              <>
-                <Row label="Judul" value={judul} />
-                <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
-                <Row label="Pembimbing I" value={namaDosen(pembimbing1)} />
-                <Row label="Pembimbing II" value={pembimbing2 ? namaDosen(pembimbing2) : "-"} />
-                <Row label="Penguji I" value={namaDosen(penguji1)} />
-                <Row label="Penguji II" value={penguji2 ? namaDosen(penguji2) : "-"} />
-                <Row label="Penguji III" value={penguji3 ? namaDosen(penguji3) : "-"} />
-                <Row label="SDGs" value={sdgs.length ? sdgs.join(", ") : "-"} />
-              </>
+      {/* LANGKAH 3 */}
+      {langkah === 3 && isPlk && renderUploadStep(2, 4)}
+      {langkah === 3 && !isPlk && renderReviewStep(2)}
+
+      {/* LANGKAH 4 (khusus PLK) */}
+      {langkah === 4 && isPlk && renderReviewStep(3)}
+
+      {/* LANGKAH 5: Sukses (khusus PLK) */}
+      {langkah === 5 && isPlk && (
+        <div className="flex flex-col items-center gap-3 py-10 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl text-green-600">✓</span>
+          <p className="text-lg font-heading font-semibold text-primary-800">Laporan PLK Berhasil Diunggah</p>
+          <p className="max-w-sm text-sm text-slate-500">Laporan Anda sudah tayang di repositori dan dapat diakses oleh seluruh civitas akademika.</p>
+          <div className="mt-4 flex gap-3">
+            {uploadedId && (
+              <a href={`/ta/${uploadedId}`} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">Lihat Laporan</a>
             )}
-            <Row label="File" value={file?.name ?? "-"} />
-          </div>
-          <p className="rounded-lg bg-primary-50 p-3 text-sm text-primary-700">
-            Dengan menekan "Unggah & Terbitkan", karya Anda akan <strong>langsung tayang di repositori</strong> dan dapat diakses oleh seluruh civitas akademika.
-          </p>
-          <div className="flex justify-between">
-            <button onClick={() => setLangkah(2)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
-            <button
-              onClick={handleSubmit}
-              disabled={isPending}
-              className="rounded-lg bg-accent-500 px-5 py-2 font-medium text-white hover:bg-accent-600 disabled:opacity-50"
-            >
-              {isPending ? "Mengunggah..." : "Unggah & Terbitkan ✓"}
-            </button>
+            <a href="/dashboard/mahasiswa/status" className="rounded-lg bg-accent-500 px-5 py-2 font-medium text-white hover:bg-accent-600">Kembali ke Karya Saya</a>
           </div>
         </div>
       )}

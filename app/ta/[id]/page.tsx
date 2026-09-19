@@ -25,7 +25,8 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
       pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
       penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
       penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap),
-      penguji3:profiles!tugas_akhir_dosen_penguji_3_id_fkey(nama_lengkap)
+      penguji3:profiles!tugas_akhir_dosen_penguji_3_id_fkey(nama_lengkap),
+      koordinator:profiles!tugas_akhir_koordinator_pli_id_fkey(nama_lengkap)
     `)
     .eq("id", params.id)
     .eq("status_verifikasi", "diterima")
@@ -33,16 +34,27 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
 
   if (!ta) return notFound();
 
+  const isPli = ta.jenis_doc === "laporan_praktek_industri";
+  const isPlk = ta.jenis_doc === "laporan_pkl";
+  const isLapangan = isPli || isPlk;
+
   const [{ data: terkait }, sdgsList] = await Promise.all([
-    supabase
-      .from("tugas_akhir")
-      .select("id, judul, tahun, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap)")
-      .eq("status_verifikasi", "diterima")
-      .eq("kategori_id", ta.kategori_id)
-      .neq("id", ta.id)
-      .limit(2),
+    isLapangan
+      ? Promise.resolve({ data: [] })
+      : supabase
+          .from("tugas_akhir")
+          .select("id, judul, tahun, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap)")
+          .eq("status_verifikasi", "diterima")
+          .eq("kategori_id", ta.kategori_id)
+          .neq("id", ta.id)
+          .limit(2),
     getDaftarSdgs(),
   ]);
+
+  const periode =
+    ta.tanggal_mulai_pli && ta.tanggal_selesai_pli
+      ? `${new Date(ta.tanggal_mulai_pli).toLocaleDateString("id-ID")} s.d. ${new Date(ta.tanggal_selesai_pli).toLocaleDateString("id-ID")}`
+      : "-";
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -57,36 +69,78 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
               {ta.prodi === "s1_pend_otomotif" ? "S1" : "D3"}
             </span>
             <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
-              {ta.kategori_topik?.nama_kategori ?? "Umum"}
-            </span>
-            <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
               {LABEL_JENIS_DOC[ta.jenis_doc as JenisDoc]}
             </span>
-            {ta.kbk && (
-              <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{ta.kbk}</span>
-            )}
-            {ta.bidang && (
-              <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{LABEL_BIDANG[ta.bidang as Bidang]}</span>
+            {!isLapangan && (
+              <>
+                <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
+                  {ta.kategori_topik?.nama_kategori ?? "Umum"}
+                </span>
+                {ta.kbk && (
+                  <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{ta.kbk}</span>
+                )}
+                {ta.bidang && (
+                  <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{LABEL_BIDANG[ta.bidang as Bidang]}</span>
+                )}
+              </>
             )}
           </div>
           <h1 className="text-2xl font-semibold text-primary-800">{ta.judul}</h1>
 
-          <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
-            <Info label="Penulis" value={ta.mahasiswa?.nama_lengkap} />
-            <Info label="NIM" value={ta.mahasiswa?.nim} />
-            <Info label="Tahun Lulus" value={String(ta.tahun)} />
-            <Info label="Pembimbing I" value={ta.pembimbing1?.nama_lengkap ?? "-"} />
-            <Info label="Pembimbing II" value={ta.pembimbing2?.nama_lengkap ?? "-"} />
-            <Info label="Penguji I" value={ta.penguji1?.nama_lengkap ?? "-"} />
-            <Info label="Penguji II" value={ta.penguji2?.nama_lengkap ?? "-"} />
-            {ta.penguji3?.nama_lengkap && <Info label="Penguji III" value={ta.penguji3.nama_lengkap} />}
-            <Info
-              label="Diunggah"
-              value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-            />
-          </div>
+          {isPlk ? (
+            <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
+              <Info label="Penulis" value={ta.mahasiswa?.nama_lengkap} />
+              <Info label="NIM" value={ta.mahasiswa?.nim} />
+              <Info label="Tahun" value={String(ta.tahun)} />
+              <Info label="Nama Sekolah" value={ta.nama_perusahaan} />
+              <Info label="Alamat Sekolah" value={ta.alamat_perusahaan} />
+              <Info label="Kepala Sekolah" value={ta.nama_kepala_sekolah} />
+              <Info label="Semester Pelaksanaan" value={ta.semester_pelaksanaan} />
+              <Info label="Periode Pelaksanaan" value={periode} />
+              <Info label="Guru Pamong" value={ta.nama_pembimbing_lapangan} />
+              <Info label="Jabatan Guru Pamong" value={ta.jabatan_pembimbing_lapangan} />
+              {ta.koordinator?.nama_lengkap && <Info label="Koordinator PPLK/UPPL" value={ta.koordinator.nama_lengkap} />}
+              <Info
+                label="Diunggah"
+                value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+              />
+            </div>
+          ) : isPli ? (
+            <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
+              <Info label="Penulis" value={ta.mahasiswa?.nama_lengkap} />
+              <Info label="NIM" value={ta.mahasiswa?.nim} />
+              <Info label="Tahun" value={String(ta.tahun)} />
+              <Info label="Perusahaan/Instansi" value={ta.nama_perusahaan} />
+              <Info label="Alamat Perusahaan" value={ta.alamat_perusahaan} />
+              <Info label="Semester Pelaksanaan" value={ta.semester_pelaksanaan} />
+              <Info label="Periode Pelaksanaan" value={periode} />
+              <Info label="Pembimbing Lapangan" value={ta.nama_pembimbing_lapangan} />
+              <Info label="Jabatan Pembimbing Lapangan" value={ta.jabatan_pembimbing_lapangan} />
+              <Info label="Dosen Pembimbing PLI" value={ta.pembimbing1?.nama_lengkap ?? "-"} />
+              {ta.koordinator?.nama_lengkap && <Info label="Koordinator PLI" value={ta.koordinator.nama_lengkap} />}
+              <Info
+                label="Diunggah"
+                value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+              />
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
+              <Info label="Penulis" value={ta.mahasiswa?.nama_lengkap} />
+              <Info label="NIM" value={ta.mahasiswa?.nim} />
+              <Info label="Tahun Lulus" value={String(ta.tahun)} />
+              <Info label="Pembimbing I" value={ta.pembimbing1?.nama_lengkap ?? "-"} />
+              <Info label="Pembimbing II" value={ta.pembimbing2?.nama_lengkap ?? "-"} />
+              <Info label="Penguji I" value={ta.penguji1?.nama_lengkap ?? "-"} />
+              <Info label="Penguji II" value={ta.penguji2?.nama_lengkap ?? "-"} />
+              {ta.penguji3?.nama_lengkap && <Info label="Penguji III" value={ta.penguji3.nama_lengkap} />}
+              <Info
+                label="Diunggah"
+                value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+              />
+            </div>
+          )}
 
-          {ta.sdgs?.length > 0 && (
+          {!isLapangan && ta.sdgs?.length > 0 && (
             <div className="mt-4">
               <p className="mb-2 text-sm font-medium text-primary-800">Kontribusi terhadap SDGs</p>
               <div className="flex flex-wrap gap-2">
@@ -104,11 +158,13 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
           )}
 
           <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <p className="mb-2 font-medium text-primary-800">Abstrak</p>
+            <p className="mb-2 font-medium text-primary-800">
+              {isPlk ? "Ringkasan Kegiatan PPLK" : isPli ? "Ringkasan Kegiatan PLI" : "Abstrak"}
+            </p>
             <p className="text-sm leading-relaxed text-slate-700">{ta.abstrak}</p>
           </div>
 
-          {ta.kata_kunci?.length > 0 && (
+          {!isLapangan && ta.kata_kunci?.length > 0 && (
             <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
               <p className="mb-2 font-medium text-primary-800">Kata Kunci</p>
               <div className="flex flex-wrap gap-2">
@@ -146,7 +202,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             )}
           </div>
 
-          {(terkait ?? []).length > 0 && (
+          {!isLapangan && (terkait ?? []).length > 0 && (
             <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="mb-2 text-sm font-medium text-primary-800">TA Terkait</p>
               <ul className="space-y-2 text-sm">
