@@ -36,6 +36,23 @@ export async function uploadTugasAkhir(formData: FormData) {
   const nama_pembimbing_lapangan = (formData.get("nama_pembimbing_lapangan") as string) || null;
   const jabatan_pembimbing_lapangan = (formData.get("jabatan_pembimbing_lapangan") as string) || null;
   const nama_kepala_sekolah = (formData.get("nama_kepala_sekolah") as string) || null;
+  const nama_jurnal = (formData.get("nama_jurnal") as string) || null;
+  const judul_en = (formData.get("judul_en") as string) || null;
+  const abstrak_en = (formData.get("abstrak_en") as string) || null;
+  const kataKunciEnRaw = (formData.get("kata_kunci_en") as string) || "";
+  const kata_kunci_en = kataKunciEnRaw.split(",").map((s) => s.trim()).filter(Boolean);
+  const penulisJurnalRaw = (formData.get("penulis_jurnal") as string) || "[]";
+  let penulisParsed: { nama: string; peran: string; peranLainnya?: string }[] = [];
+  try {
+    penulisParsed = JSON.parse(penulisJurnalRaw);
+  } catch {
+    penulisParsed = [];
+  }
+  const penulis_jurnal = penulisParsed.map((p) => ({
+    nama: p.nama,
+    peran: p.peran,
+    peran_lainnya: p.peranLainnya || null,
+  }));
   const koordinator_pli_id = (formData.get("koordinator_pli_id") as string) || null;
   const tanggal_mulai_pli = (formData.get("tanggal_mulai_pli") as string) || null;
   const tanggal_selesai_pli = (formData.get("tanggal_selesai_pli") as string) || null;
@@ -70,6 +87,11 @@ export async function uploadTugasAkhir(formData: FormData) {
       nama_perusahaan,
       alamat_perusahaan,
       nama_kepala_sekolah,
+      nama_jurnal,
+      judul_en,
+      abstrak_en,
+      kata_kunci_en,
+      penulis_jurnal,
       nama_pembimbing_lapangan,
       jabatan_pembimbing_lapangan,
       koordinator_pli_id,

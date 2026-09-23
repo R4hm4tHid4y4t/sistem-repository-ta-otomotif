@@ -56,6 +56,11 @@ export interface TugasAkhir {
   jabatan_pembimbing_lapangan: string | null;
   koordinator_pli_id: string | null;
   nama_kepala_sekolah: string | null;
+  nama_jurnal: string | null;
+  judul_en: string | null;
+  abstrak_en: string | null;
+  kata_kunci_en: string[] | null;
+  penulis_jurnal: { nama: string; peran: string; peran_lainnya?: string | null }[] | null;
   tanggal_mulai_pli: string | null;
   tanggal_selesai_pli: string | null;
   semester_pelaksanaan: string | null;

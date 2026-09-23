@@ -3,12 +3,13 @@
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { uploadTugasAkhir } from "@/lib/actions/ta";
- import type { SdgItem } from "@/lib/sdgs";
+import type { SdgItem } from "@/lib/sdgs";
 import { JENIS_DOC_PER_PRODI, KBK_PER_PRODI, LABEL_JENIS_DOC, type Prodi, type JenisDoc } from "@/lib/klasifikasi";
 
 type Kategori = { id: string; nama_kategori: string };
 type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
 type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3";
+type Penulis = { nama: string; peran: "mahasiswa" | "dosen" | "lainnya"; peranLainnya: string };
 
 function opsiSemester() {
   const tahunAkhir = new Date().getFullYear() + 1;
@@ -28,7 +29,6 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [uploadedId, setUploadedId] = useState<string | null>(null);
 
   const [judul, setJudul] = useState("");
   const [abstrak, setAbstrak] = useState("");
@@ -47,12 +47,20 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const [penguji3, setPenguji3] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
+  // Field khusus Jurnal
+  const [namaJurnal, setNamaJurnal] = useState("");
+  const [judulEn, setJudulEn] = useState("");
+  const [abstrakEn, setAbstrakEn] = useState("");
+  const [kataKunciEn, setKataKunciEn] = useState("");
+  const [jumlahPenulis, setJumlahPenulis] = useState(1);
+  const [penulisList, setPenulisList] = useState<Penulis[]>([{ nama: "", peran: "mahasiswa", peranLainnya: "" }]);
+
   // Field bersama PLI & PLK (instansi/sekolah, pembimbing lapangan, waktu)
-  const [namaPerusahaan, setNamaPerusahaan] = useState(""); // = "Nama Sekolah" untuk PLK
-  const [alamatPerusahaan, setAlamatPerusahaan] = useState(""); // = "Alamat Sekolah" untuk PLK
-  const [namaKepalaSekolah, setNamaKepalaSekolah] = useState(""); // khusus PLK
-  const [namaPembimbingLapangan, setNamaPembimbingLapangan] = useState(""); // = "Nama Guru Pamong" untuk PLK
-  const [jabatanPembimbingLapangan, setJabatanPembimbingLapangan] = useState(""); // = "Jabatan Guru Pamong" untuk PLK
+  const [namaPerusahaan, setNamaPerusahaan] = useState("");
+  const [alamatPerusahaan, setAlamatPerusahaan] = useState("");
+  const [namaKepalaSekolah, setNamaKepalaSekolah] = useState("");
+  const [namaPembimbingLapangan, setNamaPembimbingLapangan] = useState("");
+  const [jabatanPembimbingLapangan, setJabatanPembimbingLapangan] = useState("");
   const [koordinatorPliId, setKoordinatorPliId] = useState("");
   const [tanggalMulai, setTanggalMulai] = useState("");
   const [tanggalSelesai, setTanggalSelesai] = useState("");
@@ -60,6 +68,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
   const isPli = jenisDoc === "laporan_praktek_industri";
   const isPlk = jenisDoc === "laporan_pkl";
+  const isJurnal = jenisDoc === "jurnal";
 
   const stepLabels = isPlk
     ? ["Metadata", "Pembimbing & Waktu", "Upload File", "Review & Submit", "Sukses"]
@@ -75,6 +84,19 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
   function toggleSdg(n: number) {
     setSdgs((prev) => (prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]));
+  }
+
+  function handleJumlahPenulis(n: number) {
+    setJumlahPenulis(n);
+    setPenulisList((prev) => {
+      const next = [...prev];
+      while (next.length < n) next.push({ nama: "", peran: "mahasiswa", peranLainnya: "" });
+      return next.slice(0, n);
+    });
+  }
+
+  function updatePenulis(index: number, patch: Partial<Penulis>) {
+    setPenulisList((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
   }
 
   const setters: Record<PeranDosen, (v: string) => void> = {
@@ -126,14 +148,6 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       setError("Pilih Jenis Dokumen dulu.");
       return false;
     }
-    if (isPli) {
-      if (!judul || !namaPerusahaan || !alamatPerusahaan || !namaPembimbingLapangan || !jabatanPembimbingLapangan || !pembimbing1 || !tanggalMulai || !tanggalSelesai || !semesterPelaksanaan || !abstrak) {
-        setError("Lengkapi semua field bertanda * dulu ya.");
-        return false;
-      }
-      setError(null);
-      return true;
-    }
     if (!judul || !abstrak || !kategoriId || !kbk || !pembimbing1 || !penguji1) {
       setError("Lengkapi semua field bertanda * dulu ya.");
       return false;
@@ -141,6 +155,25 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     if (prodi === "s1_pend_otomotif" && !bidang) {
       setError("Pilih Bidang (Kependidikan/Non-Kependidikan) dulu.");
       return false;
+    }
+    setError(null);
+    return true;
+  }
+
+  function validasiMetadataJurnal() {
+    if (!namaJurnal || !judul || !abstrak || !kategoriId || !kbk || !bidang) {
+      setError("Lengkapi semua field bertanda * dulu ya.");
+      return false;
+    }
+    for (const p of penulisList) {
+      if (!p.nama) {
+        setError("Lengkapi nama semua penulis dulu ya.");
+        return false;
+      }
+      if (p.peran === "lainnya" && !p.peranLainnya) {
+        setError("Sebutkan peran untuk penulis dengan peran \"Lainnya\".");
+        return false;
+      }
     }
     setError(null);
     return true;
@@ -201,6 +234,18 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       fd.set("tanggal_selesai_pli", tanggalSelesai);
       fd.set("semester_pelaksanaan", semesterPelaksanaan);
       fd.set("tahun", String(new Date(tanggalSelesai).getFullYear()));
+    } else if (isJurnal) {
+      fd.set("tahun", tahun);
+      fd.set("kategori_id", kategoriId);
+      fd.set("kata_kunci", kataKunci);
+      fd.set("sdgs", sdgs.join(","));
+      fd.set("kbk", kbk);
+      fd.set("bidang", bidang);
+      fd.set("nama_jurnal", namaJurnal);
+      fd.set("judul_en", judulEn);
+      fd.set("abstrak_en", abstrakEn);
+      fd.set("kata_kunci_en", kataKunciEn);
+      fd.set("penulis_jurnal", JSON.stringify(penulisList));
     } else {
       fd.set("tahun", tahun);
       fd.set("kategori_id", kategoriId);
@@ -297,6 +342,23 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               <Row label="Periode" value={`${tanggalMulai || "-"} s.d. ${tanggalSelesai || "-"}`} />
               <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
             </>
+          ) : isJurnal ? (
+            <>
+              <Row label="Nama Jurnal" value={namaJurnal} />
+              <Row label="Judul (ID)" value={judul} />
+              {judulEn && <Row label="Judul (EN)" value={judulEn} />}
+              <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
+              <Row label="KBK" value={kbk || "-"} />
+              <Row label="Bidang" value={bidang === "kependidikan" ? "Kependidikan" : bidang === "non_kependidikan" ? "Non-Kependidikan" : "-"} />
+              {penulisList.map((p, i) => (
+                <Row
+                  key={i}
+                  label={`Penulis ${i + 1}`}
+                  value={`${p.nama} (${p.peran === "lainnya" ? p.peranLainnya || "Lainnya" : p.peran === "mahasiswa" ? "Mahasiswa" : "Dosen"})`}
+                />
+              ))}
+              <Row label="SDGs" value={sdgs.length ? sdgs.join(", ") : "-"} />
+            </>
           ) : (
             <>
               <Row label="Judul" value={judul} />
@@ -353,7 +415,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
       {error && <p className="mb-4 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">{error}</p>}
 
-      {/* LANGKAH 1: Metadata / Data Karya (semua jenis) */}
+      {/* LANGKAH 1 */}
       {langkah === 1 && (
         <div className="space-y-4">
           <div>
@@ -381,6 +443,145 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               </select>
             </Field>
           </div>
+
+          {isJurnal && (
+            <>
+              <div className="rounded-xl border border-primary-100 bg-primary-50 p-4 text-sm">
+                <p className="font-medium text-primary-800">Jurnal Ilmiah</p>
+                <p className="mt-1 text-primary-700">Isi metadata sesuai naskah jurnal Anda (judul, abstrak, dan daftar penulis).</p>
+              </div>
+
+              <Field label="Nama Jurnal *">
+                <input value={namaJurnal} onChange={(e) => setNamaJurnal(e.target.value)} placeholder='contoh: "SISKAMI"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <Field label="Judul (Bahasa Indonesia) *">
+                <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+              <Field label="Judul (Bahasa Inggris)">
+                <input value={judulEn} onChange={(e) => setJudulEn(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <Field label="Abstrak (Bahasa Indonesia) *">
+                <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+              <Field label="Kata Kunci (pisahkan dengan koma)">
+                <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} placeholder="mis. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <Field label="Abstract (English)">
+                <textarea value={abstrakEn} onChange={(e) => setAbstrakEn(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+              <Field label="Keywords (English)">
+                <input value={kataKunciEn} onChange={(e) => setKataKunciEn(e.target.value)} placeholder="e.g. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Kategori / Topik *">
+                  <select value={kategoriId} onChange={(e) => setKategoriId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih kategori</option>
+                    {kategoriList.map((k) => (
+                      <option key={k.id} value={k.id}>{k.nama_kategori}</option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="KBK *">
+                  <select value={kbk} onChange={(e) => setKbk(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih KBK</option>
+                    {KBK_PER_PRODI[prodi].map((k) => (
+                      <option key={k} value={k}>{k}</option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              <Field label="Bidang *">
+                <div className="flex gap-4 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="bidang" checked={bidang === "kependidikan"} onChange={() => setBidang("kependidikan")} />
+                    Kependidikan
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="bidang" checked={bidang === "non_kependidikan"} onChange={() => setBidang("non_kependidikan")} />
+                    Non-Kependidikan
+                  </label>
+                </div>
+              </Field>
+
+              <div>
+                <p className="mb-2 text-sm font-medium text-primary-800">Tag SDGs (opsional, bisa lebih dari satu)</p>
+                <div className="flex flex-wrap gap-2">
+                  {sdgsList.map((s) => (
+                    <button
+                      key={s.nomor}
+                      type="button"
+                      onClick={() => toggleSdg(s.nomor)}
+                      style={sdgs.includes(s.nomor) ? { backgroundColor: s.warna } : undefined}
+                      className={`rounded px-2 py-1 text-xs font-medium ${sdgs.includes(s.nomor) ? "text-white" : "bg-slate-100 text-slate-600"}`}
+                    >
+                      {s.nomor} {s.nama}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-sm font-medium text-primary-800">Jumlah Penulis *</p>
+                <div className="flex gap-2">
+                  {[1, 2, 3].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => handleJumlahPenulis(n)}
+                      className={`h-9 w-9 rounded-lg border text-sm font-medium ${
+                        jumlahPenulis === n ? "border-accent-500 bg-accent-500 text-white" : "border-slate-300 text-slate-600"
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {penulisList.map((p, i) => (
+                  <div key={i} className="rounded-xl border border-slate-200 p-4">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Penulis {i + 1}{i === 0 ? " (Utama)" : ""}
+                    </p>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Field label="Nama *">
+                        <input value={p.nama} onChange={(e) => updatePenulis(i, { nama: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                      </Field>
+                      <Field label="Peran *">
+                        <select
+                          value={p.peran}
+                          onChange={(e) => updatePenulis(i, { peran: e.target.value as Penulis["peran"], peranLainnya: "" })}
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                        >
+                          <option value="mahasiswa">Mahasiswa</option>
+                          <option value="dosen">Dosen</option>
+                          <option value="lainnya">Lainnya</option>
+                        </select>
+                      </Field>
+                    </div>
+                    {p.peran === "lainnya" && (
+                      <div className="mt-3">
+                        <Field label="Sebutkan Peran *">
+                          <input
+                            value={p.peranLainnya}
+                            onChange={(e) => updatePenulis(i, { peranLainnya: e.target.value })}
+                            placeholder="mis. Petani, Warga Setempat, Praktisi Industri, Teknisi Bengkel"
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                          />
+                        </Field>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
 
           {isPlk && (
             <>
@@ -505,9 +706,8 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
             </>
           )}
 
-          {jenisDoc && !isPli && !isPlk && (
+          {jenisDoc && !isPli && !isPlk && !isJurnal && (
             <>
-              {false && <p />}
               <Field label="Judul *">
                 <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
               </Field>
@@ -607,7 +807,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           <div className="flex justify-end">
             <button
               onClick={() => {
-                const ok = isPlk ? validasiMetadataPlk() : validasiMetadataStandar();
+                const ok = isPlk ? validasiMetadataPlk() : isJurnal ? validasiMetadataJurnal() : validasiMetadataStandar();
                 if (ok) setLangkah(2);
               }}
               className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
@@ -666,20 +866,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       {/* LANGKAH 4 (khusus PLK) */}
       {langkah === 4 && isPlk && renderReviewStep(3)}
 
-      {/* LANGKAH 5: Sukses (khusus PLK) */}
-      {langkah === 5 && isPlk && (
-        <div className="flex flex-col items-center gap-3 py-10 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl text-green-600">✓</span>
-          <p className="text-lg font-heading font-semibold text-primary-800">Laporan PLK Berhasil Diunggah</p>
-          <p className="max-w-sm text-sm text-slate-500">Laporan Anda sudah tayang di repositori dan dapat diakses oleh seluruh civitas akademika.</p>
-          <div className="mt-4 flex gap-3">
-            {uploadedId && (
-              <a href={`/ta/${uploadedId}`} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">Lihat Laporan</a>
-            )}
-            <a href="/dashboard/mahasiswa/status" className="rounded-lg bg-accent-500 px-5 py-2 font-medium text-white hover:bg-accent-600">Kembali ke Karya Saya</a>
-          </div>
-        </div>
-      )}
+      {/* LANGKAH 5: Sukses (khusus PLK, kode mati — sudah pindah ke halaman /berhasil) */}
     </div>
   );
 }

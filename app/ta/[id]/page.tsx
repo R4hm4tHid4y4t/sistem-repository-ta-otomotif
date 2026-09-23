@@ -4,6 +4,11 @@ import { getDaftarSdgs, cariSdg } from "@/lib/sdgs";
 import { LABEL_JENIS_DOC, LABEL_BIDANG, type JenisDoc, type Bidang } from "@/lib/klasifikasi";
 import { DownloadTAButton } from "./download-button";
 
+const LABEL_PERAN_PENULIS: Record<string, string> = {
+  mahasiswa: "Mahasiswa",
+  dosen: "Dosen",
+};
+
 export default async function DetailTAPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
 
@@ -36,6 +41,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
 
   const isPli = ta.jenis_doc === "laporan_praktek_industri";
   const isPlk = ta.jenis_doc === "laporan_pkl";
+  const isJurnal = ta.jenis_doc === "jurnal";
   const isLapangan = isPli || isPlk;
 
   const [{ data: terkait }, sdgsList] = await Promise.all([
@@ -55,6 +61,8 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
     ta.tanggal_mulai_pli && ta.tanggal_selesai_pli
       ? `${new Date(ta.tanggal_mulai_pli).toLocaleDateString("id-ID")} s.d. ${new Date(ta.tanggal_selesai_pli).toLocaleDateString("id-ID")}`
       : "-";
+
+  const penulisJurnal: { nama: string; peran: string; peran_lainnya?: string | null }[] = ta.penulis_jurnal ?? [];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -86,6 +94,9 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             )}
           </div>
           <h1 className="text-2xl font-semibold text-primary-800">{ta.judul}</h1>
+          {isJurnal && ta.judul_en && (
+            <p className="mt-1 text-base italic text-slate-500">{ta.judul_en}</p>
+          )}
 
           {isPlk ? (
             <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
@@ -123,6 +134,15 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
                 value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
               />
             </div>
+          ) : isJurnal ? (
+            <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
+              <Info label="Nama Jurnal" value={ta.nama_jurnal} />
+              <Info label="Tahun" value={String(ta.tahun)} />
+              <Info
+                label="Diunggah"
+                value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+              />
+            </div>
           ) : (
             <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
               <Info label="Penulis" value={ta.mahasiswa?.nama_lengkap} />
@@ -137,6 +157,25 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
                 label="Diunggah"
                 value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
               />
+            </div>
+          )}
+
+          {isJurnal && penulisJurnal.length > 0 && (
+            <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <p className="mb-3 font-medium text-primary-800">Penulis</p>
+              <ol className="space-y-2 text-sm">
+                {penulisJurnal.map((p, i) => (
+                  <li key={i} className="flex items-center justify-between border-b border-slate-100 pb-2 last:border-0 last:pb-0">
+                    <span className="font-medium text-slate-700">{i + 1}. {p.nama}</span>
+                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                      {p.peran === "lainnya" ? (p.peran_lainnya || "Lainnya") : LABEL_PERAN_PENULIS[p.peran] ?? p.peran}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-3 text-xs text-slate-400">
+                Diunggah oleh {ta.mahasiswa?.nama_lengkap} ({ta.mahasiswa?.nim})
+              </p>
             </div>
           )}
 
@@ -157,14 +196,43 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             </div>
           )}
 
-          <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <p className="mb-2 font-medium text-primary-800">
-              {isPlk ? "Ringkasan Kegiatan PPLK" : isPli ? "Ringkasan Kegiatan PLI" : "Abstrak"}
-            </p>
-            <p className="text-sm leading-relaxed text-slate-700">{ta.abstrak}</p>
-          </div>
+          {isJurnal ? (
+            <>
+              <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <p className="mb-2 font-medium text-primary-800">Abstrak</p>
+                <p className="text-sm leading-relaxed text-slate-700">{ta.abstrak}</p>
+                {ta.kata_kunci?.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {ta.kata_kunci.map((k: string) => (
+                      <span key={k} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">{k}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {ta.abstrak_en && (
+                <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                  <p className="mb-2 font-medium text-primary-800">Abstract</p>
+                  <p className="text-sm leading-relaxed text-slate-700">{ta.abstrak_en}</p>
+                  {ta.kata_kunci_en?.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {ta.kata_kunci_en.map((k: string) => (
+                        <span key={k} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">{k}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <p className="mb-2 font-medium text-primary-800">
+                {isPlk ? "Ringkasan Kegiatan PPLK" : isPli ? "Ringkasan Kegiatan PLI" : "Abstrak"}
+              </p>
+              <p className="text-sm leading-relaxed text-slate-700">{ta.abstrak}</p>
+            </div>
+          )}
 
-          {!isLapangan && ta.kata_kunci?.length > 0 && (
+          {!isLapangan && !isJurnal && ta.kata_kunci?.length > 0 && (
             <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
               <p className="mb-2 font-medium text-primary-800">Kata Kunci</p>
               <div className="flex flex-wrap gap-2">
