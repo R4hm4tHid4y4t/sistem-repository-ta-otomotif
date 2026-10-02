@@ -9,7 +9,7 @@ import { JENIS_DOC_PER_PRODI, KBK_PER_PRODI, LABEL_JENIS_DOC, type Prodi, type J
 type Kategori = { id: string; nama_kategori: string };
 type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
 type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3";
-type Penulis = { nama: string; peran: "mahasiswa" | "dosen" | "lainnya"; peranLainnya: string };
+type Penulis = { nama: string; peran: "mahasiswa" | "dosen" | "lainnya"; peranLainnya: string; dosenId: string };
 
 function opsiSemester() {
   const tahunAkhir = new Date().getFullYear() + 1;
@@ -53,7 +53,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const [abstrakEn, setAbstrakEn] = useState("");
   const [kataKunciEn, setKataKunciEn] = useState("");
   const [jumlahPenulis, setJumlahPenulis] = useState(1);
-  const [penulisList, setPenulisList] = useState<Penulis[]>([{ nama: "", peran: "mahasiswa", peranLainnya: "" }]);
+  const [penulisList, setPenulisList] = useState<Penulis[]>([{ nama: "", peran: "mahasiswa", peranLainnya: "", dosenId: "" }]);
 
   // Field bersama PLI & PLK (instansi/sekolah, pembimbing lapangan, waktu)
   const [namaPerusahaan, setNamaPerusahaan] = useState("");
@@ -90,7 +90,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     setJumlahPenulis(n);
     setPenulisList((prev) => {
       const next = [...prev];
-      while (next.length < n) next.push({ nama: "", peran: "mahasiswa", peranLainnya: "" });
+      while (next.length < n) next.push({ nama: "", peran: "mahasiswa", peranLainnya: "", dosenId: "" });
       return next.slice(0, n);
     });
   }
@@ -166,6 +166,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       return false;
     }
     for (const p of penulisList) {
+      if (p.peran === "dosen" && !p.dosenId) {
+        setError("Pilih nama dosen untuk tiap penulis berperan Dosen.");
+        return false;
+      }
       if (!p.nama) {
         setError("Lengkapi nama semua penulis dulu ya.");
         return false;
@@ -550,13 +554,13 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                       Penulis {i + 1}{i === 0 ? " (Utama)" : ""}
                     </p>
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <Field label="Nama *">
-                        <input value={p.nama} onChange={(e) => updatePenulis(i, { nama: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-                      </Field>
                       <Field label="Peran *">
                         <select
                           value={p.peran}
-                          onChange={(e) => updatePenulis(i, { peran: e.target.value as Penulis["peran"], peranLainnya: "" })}
+                          onChange={(e) => {
+                            const peranBaru = e.target.value as Penulis["peran"];
+                            updatePenulis(i, { peran: peranBaru, peranLainnya: "", nama: "", dosenId: "" });
+                          }}
                           className="w-full rounded-lg border border-slate-300 px-3 py-2"
                         >
                           <option value="mahasiswa">Mahasiswa</option>
@@ -564,6 +568,25 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                           <option value="lainnya">Lainnya</option>
                         </select>
                       </Field>
+                      {p.peran === "dosen" ? (
+                        <Field label="Nama Dosen *">
+                          <select
+                            value={p.dosenId}
+                            onChange={(e) => {
+                              const dosen = dosenList.find((d) => d.id === e.target.value);
+                              updatePenulis(i, { dosenId: e.target.value, nama: dosen?.nama_lengkap ?? "" });
+                            }}
+                            className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                          >
+                            <option value="">Pilih dosen</option>
+                            {dosenList.map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                          </select>
+                        </Field>
+                      ) : (
+                        <Field label="Nama *">
+                          <input value={p.nama} onChange={(e) => updatePenulis(i, { nama: e.target.value })} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                        </Field>
+                      )}
                     </div>
                     {p.peran === "lainnya" && (
                       <div className="mt-3">
@@ -865,8 +888,6 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
       {/* LANGKAH 4 (khusus PLK) */}
       {langkah === 4 && isPlk && renderReviewStep(3)}
-
-      {/* LANGKAH 5: Sukses (khusus PLK, kode mati — sudah pindah ke halaman /berhasil) */}
     </div>
   );
 }

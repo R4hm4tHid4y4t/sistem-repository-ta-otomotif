@@ -60,7 +60,7 @@ export interface TugasAkhir {
   judul_en: string | null;
   abstrak_en: string | null;
   kata_kunci_en: string[] | null;
-  penulis_jurnal: { nama: string; peran: string; peran_lainnya?: string | null }[] | null;
+  penulis_jurnal: { nama: string; peran: string; peran_lainnya?: string | null; dosen_id?: string | null }[] | null;
   tanggal_mulai_pli: string | null;
   tanggal_selesai_pli: string | null;
   semester_pelaksanaan: string | null;

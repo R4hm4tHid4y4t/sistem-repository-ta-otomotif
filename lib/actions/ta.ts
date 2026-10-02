@@ -42,7 +42,7 @@ export async function uploadTugasAkhir(formData: FormData) {
   const kataKunciEnRaw = (formData.get("kata_kunci_en") as string) || "";
   const kata_kunci_en = kataKunciEnRaw.split(",").map((s) => s.trim()).filter(Boolean);
   const penulisJurnalRaw = (formData.get("penulis_jurnal") as string) || "[]";
-  let penulisParsed: { nama: string; peran: string; peranLainnya?: string }[] = [];
+  let penulisParsed: { nama: string; peran: string; peranLainnya?: string; dosenId?: string }[] = [];
   try {
     penulisParsed = JSON.parse(penulisJurnalRaw);
   } catch {
@@ -52,6 +52,7 @@ export async function uploadTugasAkhir(formData: FormData) {
     nama: p.nama,
     peran: p.peran,
     peran_lainnya: p.peranLainnya || null,
+    dosen_id: p.dosenId || null,
   }));
   const koordinator_pli_id = (formData.get("koordinator_pli_id") as string) || null;
   const tanggal_mulai_pli = (formData.get("tanggal_mulai_pli") as string) || null;
