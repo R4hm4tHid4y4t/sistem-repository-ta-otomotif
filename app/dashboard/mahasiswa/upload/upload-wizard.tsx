@@ -197,7 +197,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   }
 
   function validasiPembimbingWaktuPlk() {
-    if (!tanggalMulai || !tanggalSelesai || !semesterPelaksanaan || !abstrak) {
+    if (!pembimbing1 || !tanggalMulai || !tanggalSelesai || !semesterPelaksanaan || !abstrak) {
       setError("Lengkapi semua field bertanda * dulu ya.");
       return false;
     }
@@ -331,6 +331,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               <Row label="Alamat Sekolah" value={alamatPerusahaan} />
               <Row label="Kepala Sekolah" value={namaKepalaSekolah} />
               <Row label="Guru Pamong" value={`${namaPembimbingLapangan} — ${jabatanPembimbingLapangan}`} />
+              <Row label="Dosen Pembimbing PLK" value={namaDosen(pembimbing1)} />
               <Row label="Koordinator PPLK/UPPL" value={koordinatorPliId ? namaDosen(koordinatorPliId) : "-"} />
               <Row label="Periode" value={`${tanggalMulai || "-"} s.d. ${tanggalSelesai || "-"}`} />
               <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
@@ -845,10 +846,24 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       {langkah === 2 && isPlk && (
         <div className="space-y-4">
           <h2 className="text-lg font-heading font-semibold text-primary-800">Pembimbing & Waktu</h2>
+          <Field label="Dosen Pembimbing PLK *">
+            <select
+              value={pembimbing1}
+              onChange={(e) => setPembimbing1(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+            >
+              <option value="">Pilih dosen pembimbing...</option>
+              {dosenList.filter((d) => d.id !== koordinatorPliId).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+            </select>
+          </Field>
           <Field label="Koordinator PPLK/UPPL (opsional)">
-            <select value={koordinatorPliId} onChange={(e) => setKoordinatorPliId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+            <select
+              value={koordinatorPliId}
+              onChange={(e) => setKoordinatorPliId(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2"
+            >
               <option value="">Tidak diisi / tidak tersedia</option>
-              {dosenList.map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+              {dosenList.filter((d) => d.id !== pembimbing1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
             </select>
           </Field>
           <div className="grid gap-4 sm:grid-cols-3">

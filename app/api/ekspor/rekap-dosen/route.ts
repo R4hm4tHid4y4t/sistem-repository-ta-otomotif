@@ -12,10 +12,10 @@ export async function GET() {
     supabase
       .from("tugas_akhir")
       .select(
-        "judul, tahun, status_verifikasi, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)"
+        "judul, tahun, status_verifikasi, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, koordinator_pli_id, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)"
       )
       .or(
-        `dosen_pembimbing_id.eq.${user.id},dosen_pembimbing_2_id.eq.${user.id},dosen_penguji_1_id.eq.${user.id},dosen_penguji_2_id.eq.${user.id},dosen_penguji_3_id.eq.${user.id}`
+        `dosen_pembimbing_id.eq.${user.id},dosen_pembimbing_2_id.eq.${user.id},dosen_penguji_1_id.eq.${user.id},dosen_penguji_2_id.eq.${user.id},dosen_penguji_3_id.eq.${user.id},koordinator_pli_id.eq.${user.id}`
       )
       .order("tahun", { ascending: false }),
     supabase
@@ -43,6 +43,9 @@ export async function GET() {
     const peran: string[] = [];
     if (jenis === "laporan_praktek_industri") {
       if (r.dosen_pembimbing_id === user.id) peran.push("Pembimbing PLI");
+    } else if (jenis === "laporan_pkl") {
+      if (r.dosen_pembimbing_id === user.id) peran.push("Pembimbing PLK");
+      if (r.koordinator_pli_id === user.id) peran.push("Koordinator PPLK/UPPL");
     } else {
       if (r.dosen_pembimbing_id === user.id) peran.push("Pembimbing I");
       if (r.dosen_pembimbing_2_id === user.id) peran.push("Pembimbing II");

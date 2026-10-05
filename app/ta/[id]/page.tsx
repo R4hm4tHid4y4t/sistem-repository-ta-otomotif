@@ -110,6 +110,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
               <Info label="Periode Pelaksanaan" value={periode} />
               <Info label="Guru Pamong" value={ta.nama_pembimbing_lapangan} />
               <Info label="Jabatan Guru Pamong" value={ta.jabatan_pembimbing_lapangan} />
+              <Info label="Dosen Pembimbing PLK" value={ta.pembimbing1?.nama_lengkap ?? "-"} />
               {ta.koordinator?.nama_lengkap && <Info label="Koordinator PPLK/UPPL" value={ta.koordinator.nama_lengkap} />}
               <Info
                 label="Diunggah"
