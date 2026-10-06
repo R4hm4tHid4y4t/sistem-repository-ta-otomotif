@@ -143,6 +143,9 @@ export function StatistikChartsClient({
                 </BarChart>
               </ResponsiveContainer>
             )}
+            <p className="mt-2 text-xs text-slate-400">
+              Dihitung dari TA bimbingan dosen lain. TA bimbingan sendiri otomatis terhitung sebagai ketua penguji dan masuk ke grafik "Dibimbing" di atas, bukan di sini — jadi kinerja tidak dihitung dua kali.
+            </p>
           </div>
         </>
       )}

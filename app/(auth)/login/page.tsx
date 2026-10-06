@@ -44,9 +44,6 @@ export default function LoginPage() {
           required
         />
         <button className="w-full rounded-lg bg-accent-500 py-2 font-medium text-white hover:bg-accent-600">Masuk</button>
-        <p className="text-sm text-slate-500">
-          Belum punya akun? <Link href="/register" className="font-medium text-primary-700 hover:underline">Daftar</Link>
-        </p>
       </form>
     </div>
   );

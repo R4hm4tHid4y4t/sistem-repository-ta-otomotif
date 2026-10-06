@@ -64,7 +64,9 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
   const pengujiCount = new Map<string, number>();
   rows.forEach((r) => {
     [r.dosen_penguji_1_id, r.dosen_penguji_2_id, r.dosen_penguji_3_id].forEach((id) => {
-      if (id) pengujiCount.set(id, (pengujiCount.get(id) ?? 0) + 1);
+      if (id && id !== r.dosen_pembimbing_id && id !== r.dosen_pembimbing_2_id) {
+        pengujiCount.set(id, (pengujiCount.get(id) ?? 0) + 1);
+      }
     });
   });
   const perPenguji = Array.from(pengujiCount, ([id, jumlah]) => ({
