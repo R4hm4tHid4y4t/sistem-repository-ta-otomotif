@@ -37,6 +37,12 @@ export async function uploadTugasAkhir(formData: FormData) {
   const jabatan_pembimbing_lapangan = (formData.get("jabatan_pembimbing_lapangan") as string) || null;
   const nama_kepala_sekolah = (formData.get("nama_kepala_sekolah") as string) || null;
   const nama_jurnal = (formData.get("nama_jurnal") as string) || null;
+  const doi_jurnal = (formData.get("doi_jurnal") as string) || null;
+
+  const jumlahKataAbstrak = (abstrak ?? "").trim().split(/\s+/).filter(Boolean).length;
+  if ((jenis_doc === "ta" || jenis_doc === "jurnal") && jumlahKataAbstrak > 350) {
+    throw new Error("Abstrak maksimal 350 kata.");
+  }
   const judul_en = (formData.get("judul_en") as string) || null;
   const abstrak_en = (formData.get("abstrak_en") as string) || null;
   const kataKunciEnRaw = (formData.get("kata_kunci_en") as string) || "";
@@ -89,6 +95,7 @@ export async function uploadTugasAkhir(formData: FormData) {
       alamat_perusahaan,
       nama_kepala_sekolah,
       nama_jurnal,
+      doi_jurnal,
       judul_en,
       abstrak_en,
       kata_kunci_en,

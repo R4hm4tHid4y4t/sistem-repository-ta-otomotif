@@ -138,6 +138,19 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
           ) : isJurnal ? (
             <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
               <Info label="Nama Jurnal" value={ta.nama_jurnal} />
+              {ta.doi_jurnal && (
+                <div>
+                  <p className="text-xs text-slate-400">DOI / Link Publikasi</p>
+                  <a
+                    href={/^https?:\/\//i.test(ta.doi_jurnal) ? ta.doi_jurnal : `https://doi.org/${ta.doi_jurnal}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="break-all font-medium text-accent-600 hover:underline"
+                  >
+                    {ta.doi_jurnal}
+                  </a>
+                </div>
+              )}
               <Info label="Tahun" value={String(ta.tahun)} />
               <Info
                 label="Diunggah"

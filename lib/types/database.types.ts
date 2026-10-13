@@ -57,6 +57,7 @@ export interface TugasAkhir {
   koordinator_pli_id: string | null;
   nama_kepala_sekolah: string | null;
   nama_jurnal: string | null;
+  doi_jurnal: string | null;
   judul_en: string | null;
   abstrak_en: string | null;
   kata_kunci_en: string[] | null;

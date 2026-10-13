@@ -49,6 +49,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
   // Field khusus Jurnal
   const [namaJurnal, setNamaJurnal] = useState("");
+  const [doiJurnal, setDoiJurnal] = useState("");
   const [judulEn, setJudulEn] = useState("");
   const [abstrakEn, setAbstrakEn] = useState("");
   const [kataKunciEn, setKataKunciEn] = useState("");
@@ -80,6 +81,11 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     if (!JENIS_DOC_PER_PRODI[p].includes(jenisDoc as JenisDoc)) setJenisDoc("");
     if (!KBK_PER_PRODI[p].includes(kbk)) setKbk("");
     if (p !== "s1_pend_otomotif") setBidang("");
+  }
+
+  const MAKS_KATA_ABSTRAK = 350;
+  function hitungKata(teks: string) {
+    return teks.trim().split(/\s+/).filter(Boolean).length;
   }
 
   function toggleSdg(n: number) {
@@ -148,6 +154,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       setError("Pilih Jenis Dokumen dulu.");
       return false;
     }
+    if (hitungKata(abstrak) > MAKS_KATA_ABSTRAK) {
+      setError(`Abstrak maksimal ${MAKS_KATA_ABSTRAK} kata (sekarang ${hitungKata(abstrak)} kata).`);
+      return false;
+    }
     if (!judul || !abstrak || !kategoriId || !kbk || !pembimbing1 || !penguji1) {
       setError("Lengkapi semua field bertanda * dulu ya.");
       return false;
@@ -161,6 +171,14 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   }
 
   function validasiMetadataJurnal() {
+    if (hitungKata(abstrak) > MAKS_KATA_ABSTRAK) {
+      setError(`Abstrak maksimal ${MAKS_KATA_ABSTRAK} kata (sekarang ${hitungKata(abstrak)} kata).`);
+      return false;
+    }
+    if (!doiJurnal) {
+      setError("DOI / link publikasi wajib diisi (jurnal harus sudah terbit).");
+      return false;
+    }
     if (!namaJurnal || !judul || !abstrak || !kategoriId || !kbk || !bidang) {
       setError("Lengkapi semua field bertanda * dulu ya.");
       return false;
@@ -246,6 +264,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       fd.set("kbk", kbk);
       fd.set("bidang", bidang);
       fd.set("nama_jurnal", namaJurnal);
+      fd.set("doi_jurnal", doiJurnal);
       fd.set("judul_en", judulEn);
       fd.set("abstrak_en", abstrakEn);
       fd.set("kata_kunci_en", kataKunciEn);
@@ -350,6 +369,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           ) : isJurnal ? (
             <>
               <Row label="Nama Jurnal" value={namaJurnal} />
+              <Row label="DOI / Link" value={doiJurnal} />
               <Row label="Judul (ID)" value={judul} />
               {judulEn && <Row label="Judul (EN)" value={judulEn} />}
               <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
@@ -460,6 +480,16 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                 <input value={namaJurnal} onChange={(e) => setNamaJurnal(e.target.value)} placeholder='contoh: "SISKAMI"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
               </Field>
 
+              <Field label="DOI / Link Publikasi *">
+                <input
+                  value={doiJurnal}
+                  onChange={(e) => setDoiJurnal(e.target.value)}
+                  placeholder="contoh: 10.1234/siskami.v1i1.123 atau https://..."
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+                <p className="mt-1 text-xs text-slate-500">Jurnal harus sudah terbit. Isi DOI atau tautan artikel di situs jurnal.</p>
+              </Field>
+
               <Field label="Judul (Bahasa Indonesia) *">
                 <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
               </Field>
@@ -469,6 +499,9 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
               <Field label="Abstrak (Bahasa Indonesia) *">
                 <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                <p className={`mt-1 text-xs ${hitungKata(abstrak) > MAKS_KATA_ABSTRAK ? "text-amber-700" : "text-slate-500"}`}>
+                  {hitungKata(abstrak)} / {MAKS_KATA_ABSTRAK} kata
+                </p>
               </Field>
               <Field label="Kata Kunci (pisahkan dengan koma)">
                 <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} placeholder="mis. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
@@ -737,6 +770,9 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               </Field>
               <Field label="Abstrak *">
                 <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={5} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                <p className={`mt-1 text-xs ${hitungKata(abstrak) > MAKS_KATA_ABSTRAK ? "text-amber-700" : "text-slate-500"}`}>
+                  {hitungKata(abstrak)} / {MAKS_KATA_ABSTRAK} kata
+                </p>
               </Field>
               <Field label="Kata Kunci (pisahkan dengan koma)">
                 <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} placeholder="mis. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
