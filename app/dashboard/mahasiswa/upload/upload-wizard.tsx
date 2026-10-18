@@ -8,7 +8,7 @@ import { JENIS_DOC_PER_PRODI, KBK_PER_PRODI, LABEL_JENIS_DOC, type Prodi, type J
 
 type Kategori = { id: string; nama_kategori: string };
 type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
-type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3";
+type PeranDosen = "pembimbing1" | "pembimbing2" | "penguji1" | "penguji2" | "penguji3" | "penguji4" | "penguji5";
 type Penulis = { nama: string; peran: "mahasiswa" | "dosen" | "lainnya"; peranLainnya: string; dosenId: string };
 
 function opsiSemester() {
@@ -45,6 +45,8 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const [penguji1, setPenguji1] = useState("");
   const [penguji2, setPenguji2] = useState("");
   const [penguji3, setPenguji3] = useState("");
+  const [penguji4, setPenguji4] = useState("");
+  const [penguji5, setPenguji5] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
   // Field khusus Jurnal
@@ -111,10 +113,12 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     penguji1: setPenguji1,
     penguji2: setPenguji2,
     penguji3: setPenguji3,
+    penguji4: setPenguji4,
+    penguji5: setPenguji5,
   };
 
   function pilihDosen(field: PeranDosen, value: string) {
-    const nilaiSekarang: Record<PeranDosen, string> = { pembimbing1, pembimbing2, penguji1, penguji2, penguji3 };
+    const nilaiSekarang: Record<PeranDosen, string> = { pembimbing1, pembimbing2, penguji1, penguji2, penguji3, penguji4, penguji5 };
     setters[field](value);
     if (value) {
       (Object.keys(setters) as PeranDosen[]).forEach((key) => {
@@ -124,7 +128,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   }
 
   function opsiDosen(kecuali: string) {
-    const dipakai = new Set([pembimbing1, pembimbing2, penguji1, penguji2, penguji3].filter((id) => id && id !== kecuali));
+    const dipakai = new Set([pembimbing1, pembimbing2, penguji1, penguji2, penguji3, penguji4, penguji5].filter((id) => id && id !== kecuali));
     return dosenList.filter((d) => !dipakai.has(d.id));
   }
 
@@ -158,7 +162,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       setError(`Abstrak maksimal ${MAKS_KATA_ABSTRAK} kata (sekarang ${hitungKata(abstrak)} kata).`);
       return false;
     }
-    if (!judul || !abstrak || !kategoriId || !kbk || !pembimbing1 || !penguji1) {
+    if (!judul || !abstrak || !kategoriId || !kbk || !pembimbing1 || !penguji1 || !penguji2) {
       setError("Lengkapi semua field bertanda * dulu ya.");
       return false;
     }
@@ -280,6 +284,8 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       fd.set("dosen_penguji_1_id", penguji1);
       fd.set("dosen_penguji_2_id", penguji2);
       fd.set("dosen_penguji_3_id", penguji3);
+      fd.set("dosen_penguji_4_id", penguji4);
+      fd.set("dosen_penguji_5_id", penguji5);
     }
 
     startTransition(async () => {
@@ -393,6 +399,8 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               <Row label="Penguji I" value={namaDosen(penguji1)} />
               <Row label="Penguji II" value={penguji2 ? namaDosen(penguji2) : "-"} />
               <Row label="Penguji III" value={penguji3 ? namaDosen(penguji3) : "-"} />
+              <Row label="Penguji IV" value={penguji4 ? namaDosen(penguji4) : "-"} />
+              <Row label="Penguji V" value={penguji5 ? namaDosen(penguji5) : "-"} />
               <Row label="SDGs" value={sdgs.length ? sdgs.join(", ") : "-"} />
             </>
           )}
@@ -848,7 +856,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                     {opsiDosen(penguji1).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
                   </select>
                 </Field>
-                <Field label="Penguji II (opsional)">
+                <Field label="Penguji II *">
                   <select value={penguji2} onChange={(e) => pilihDosen("penguji2", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
                     <option value="">Pilih dosen</option>
                     {opsiDosen(penguji2).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
@@ -858,6 +866,18 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                   <select value={penguji3} onChange={(e) => pilihDosen("penguji3", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
                     <option value="">Pilih dosen</option>
                     {opsiDosen(penguji3).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                  </select>
+                </Field>
+                <Field label="Penguji IV (opsional, boleh dosen luar)">
+                  <select value={penguji4} onChange={(e) => pilihDosen("penguji4", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih dosen</option>
+                    {opsiDosen(penguji4).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                  </select>
+                </Field>
+                <Field label="Penguji V (opsional, boleh dosen luar)">
+                  <select value={penguji5} onChange={(e) => pilihDosen("penguji5", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih dosen</option>
+                    {opsiDosen(penguji5).map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
                   </select>
                 </Field>
               </div>

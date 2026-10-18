@@ -3,11 +3,22 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export async function updateDosen(id: string, nama_lengkap: string, nidn: string, jabatan: string) {
+export async function updateDosen(id: string, nama_lengkap: string, nidn: string, jabatan: string, kode_dosen: string) {
   const supabase = createClient();
-  const { error } = await supabase.from("profiles").update({ nama_lengkap, nidn: nidn || null, jabatan: jabatan || null }).eq("id", id);
-  if (error) throw error;
-  revalidatePath("/dashboard/admin/master-dosen");
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      nama_lengkap,
+      nidn: nidn || null,
+      jabatan: jabatan || null,
+      kode_dosen: kode_dosen.trim() || null,
+    })
+    .eq("id", id);
+  if (error) {
+    if (error.code === "23505") throw new Error("Kode dosen sudah dipakai dosen lain.");
+    throw error;
+  }
+  revalidatePath("/dashboard/admin/master-data");
 }
 
 export async function tambahKategori(nama_kategori: string, deskripsi: string) {

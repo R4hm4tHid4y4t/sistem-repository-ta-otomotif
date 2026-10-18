@@ -50,6 +50,8 @@ export interface TugasAkhir {
   dosen_penguji_1_id: string | null;
   dosen_penguji_2_id: string | null;
   dosen_penguji_3_id: string | null;
+  dosen_penguji_4_id: string | null;
+  dosen_penguji_5_id: string | null;
   nama_perusahaan: string | null;
   alamat_perusahaan: string | null;
   nama_pembimbing_lapangan: string | null;

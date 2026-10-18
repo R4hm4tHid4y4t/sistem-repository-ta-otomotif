@@ -31,6 +31,12 @@ export async function uploadTugasAkhir(formData: FormData) {
   const dosen_penguji_1_id = (formData.get("dosen_penguji_1_id") as string) || null;
   const dosen_penguji_2_id = (formData.get("dosen_penguji_2_id") as string) || null;
   const dosen_penguji_3_id = (formData.get("dosen_penguji_3_id") as string) || null;
+  const dosen_penguji_4_id = (formData.get("dosen_penguji_4_id") as string) || null;
+  const dosen_penguji_5_id = (formData.get("dosen_penguji_5_id") as string) || null;
+
+  if (jenis_doc === "ta" && (!dosen_penguji_1_id || !dosen_penguji_2_id)) {
+    throw new Error("Penguji I dan Penguji II wajib diisi.");
+  }
   const nama_perusahaan = (formData.get("nama_perusahaan") as string) || null;
   const alamat_perusahaan = (formData.get("alamat_perusahaan") as string) || null;
   const nama_pembimbing_lapangan = (formData.get("nama_pembimbing_lapangan") as string) || null;
@@ -91,6 +97,8 @@ export async function uploadTugasAkhir(formData: FormData) {
       dosen_penguji_1_id,
       dosen_penguji_2_id,
       dosen_penguji_3_id,
+      dosen_penguji_4_id,
+      dosen_penguji_5_id,
       nama_perusahaan,
       alamat_perusahaan,
       nama_kepala_sekolah,
