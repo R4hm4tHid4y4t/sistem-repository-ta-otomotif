@@ -9,9 +9,9 @@ export default async function RekapDosenPage() {
   const [{ data: semuaTA }, { data: semuaJurnal }] = await Promise.all([
     supabase
       .from("tugas_akhir")
-      .select("id, judul, tahun, status_verifikasi, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, koordinator_pli_id")
+      .select("id, judul, tahun, status_verifikasi, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, dosen_penguji_4_id, dosen_penguji_5_id, koordinator_pli_id")
       .or(
-        `dosen_pembimbing_id.eq.${user.id},dosen_pembimbing_2_id.eq.${user.id},dosen_penguji_1_id.eq.${user.id},dosen_penguji_2_id.eq.${user.id},dosen_penguji_3_id.eq.${user.id},koordinator_pli_id.eq.${user.id}`
+        `dosen_pembimbing_id.eq.${user.id},dosen_pembimbing_2_id.eq.${user.id},dosen_penguji_1_id.eq.${user.id},dosen_penguji_2_id.eq.${user.id},dosen_penguji_3_id.eq.${user.id},dosen_penguji_4_id.eq.${user.id},dosen_penguji_5_id.eq.${user.id},koordinator_pli_id.eq.${user.id}`
       )
       .order("tahun", { ascending: false }),
     supabase
@@ -23,7 +23,13 @@ export default async function RekapDosenPage() {
 
   const rows = semuaTA ?? [];
   const bimbinganTA = rows.filter((r) => r.jenis_doc === "ta" && (r.dosen_pembimbing_id === user.id || r.dosen_pembimbing_2_id === user.id));
-  const diujiTA = rows.filter((r) => r.jenis_doc === "ta" && (r.dosen_penguji_1_id === user.id || r.dosen_penguji_2_id === user.id || r.dosen_penguji_3_id === user.id));
+  const diujiTA = rows.filter(
+    (r) =>
+      r.jenis_doc === "ta" &&
+      [r.dosen_penguji_1_id, r.dosen_penguji_2_id, r.dosen_penguji_3_id, r.dosen_penguji_4_id, r.dosen_penguji_5_id].includes(user.id) &&
+      r.dosen_pembimbing_id !== user.id &&
+      r.dosen_pembimbing_2_id !== user.id
+  );
   const bimbinganPli = rows.filter((r) => r.jenis_doc === "laporan_praktek_industri" && r.dosen_pembimbing_id === user.id);
   const bimbinganPlk = rows.filter((r) => r.jenis_doc === "laporan_pkl" && (r.dosen_pembimbing_id === user.id || r.koordinator_pli_id === user.id));
 
@@ -48,7 +54,7 @@ export default async function RekapDosenPage() {
         <RekapTable rows={bimbinganTA} />
       </div>
       <div>
-        <h2 className="mb-4 text-lg font-semibold text-primary-800">TA yang Diuji</h2>
+        <h2 className="mb-4 text-lg font-semibold text-primary-800">TA yang Diuji <span className="text-sm font-normal text-slate-400">(di luar bimbingan sendiri)</span></h2>
         <RekapTable rows={diujiTA} />
       </div>
       <div>

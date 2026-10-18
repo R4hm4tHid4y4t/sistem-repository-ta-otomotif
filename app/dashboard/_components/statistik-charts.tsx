@@ -9,7 +9,7 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
   const [{ data: taRows }, { data: dosenRows }, { data: kategoriRows }, sdgsList] = await Promise.all([
     supabase
       .from("tugas_akhir")
-      .select("tahun, prodi, kategori_id, sdgs, kbk, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id")
+      .select("tahun, prodi, kategori_id, sdgs, kbk, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, dosen_penguji_4_id, dosen_penguji_5_id")
       .eq("status_verifikasi", "diterima"),
     supabase.from("profiles").select("id, nama_lengkap, kode_dosen").eq("role", "dosen"),
     supabase.from("kategori_topik").select("id, nama_kategori"),
@@ -65,7 +65,7 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
 
   const pengujiCount = new Map<string, number>();
   rows.forEach((r) => {
-    [r.dosen_penguji_1_id, r.dosen_penguji_2_id, r.dosen_penguji_3_id].forEach((id) => {
+    [r.dosen_penguji_1_id, r.dosen_penguji_2_id, r.dosen_penguji_3_id, r.dosen_penguji_4_id, r.dosen_penguji_5_id].forEach((id) => {
       if (id && id !== r.dosen_pembimbing_id && id !== r.dosen_pembimbing_2_id) {
         pengujiCount.set(id, (pengujiCount.get(id) ?? 0) + 1);
       }

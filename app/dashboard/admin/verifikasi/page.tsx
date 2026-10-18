@@ -30,7 +30,7 @@ export default async function KelolaTAPage() {
               <th className="p-3">KBK</th>
               <th className="p-3">Bidang</th>
               <th className="p-3">Pembimbing I & II</th>
-              <th className="p-3">Penguji I/II/III</th>
+              <th className="p-3">Penguji I–V</th>
               <th className="p-3">Status</th>
               <th className="p-3">Aksi</th>
             </tr>
@@ -38,7 +38,7 @@ export default async function KelolaTAPage() {
           <tbody>
             {(daftarTA ?? []).map((ta: any) => {
               const pembimbing = [ta.pembimbing1?.nama_lengkap, ta.pembimbing2?.nama_lengkap].filter(Boolean).join(", ") || "-";
-              const penguji = [ta.penguji1?.nama_lengkap, ta.penguji2?.nama_lengkap, ta.penguji3?.nama_lengkap].filter(Boolean).join(", ") || "-";
+              const penguji = [ta.penguji1?.nama_lengkap, ta.penguji2?.nama_lengkap, ta.penguji3?.nama_lengkap, ta.penguji4?.nama_lengkap, ta.penguji5?.nama_lengkap].filter(Boolean).join(", ") || "-";
               return (
                 <tr key={ta.id} className="border-t border-slate-100 align-top">
                   <td className="p-3 font-medium text-primary-800">

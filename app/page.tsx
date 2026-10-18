@@ -36,7 +36,9 @@ export default async function BerandaPage() {
         pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
         penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
         penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap),
-        penguji3:profiles!tugas_akhir_dosen_penguji_3_id_fkey(nama_lengkap)
+        penguji3:profiles!tugas_akhir_dosen_penguji_3_id_fkey(nama_lengkap),
+        penguji4:profiles!tugas_akhir_dosen_penguji_4_id_fkey(nama_lengkap),
+        penguji5:profiles!tugas_akhir_dosen_penguji_5_id_fkey(nama_lengkap)
       `)
       .eq("status_verifikasi", "diterima")
       .order("created_at", { ascending: false })

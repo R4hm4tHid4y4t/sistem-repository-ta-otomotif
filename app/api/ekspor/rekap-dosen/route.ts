@@ -12,10 +12,10 @@ export async function GET() {
     supabase
       .from("tugas_akhir")
       .select(
-        "judul, tahun, status_verifikasi, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, koordinator_pli_id, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)"
+        "judul, tahun, status_verifikasi, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, dosen_penguji_4_id, dosen_penguji_5_id, koordinator_pli_id, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)"
       )
       .or(
-        `dosen_pembimbing_id.eq.${user.id},dosen_pembimbing_2_id.eq.${user.id},dosen_penguji_1_id.eq.${user.id},dosen_penguji_2_id.eq.${user.id},dosen_penguji_3_id.eq.${user.id},koordinator_pli_id.eq.${user.id}`
+        `dosen_pembimbing_id.eq.${user.id},dosen_pembimbing_2_id.eq.${user.id},dosen_penguji_1_id.eq.${user.id},dosen_penguji_2_id.eq.${user.id},ddosen_penguji_3_id.eq.${user.id},dosen_penguji_4_id.eq.${user.id},dosen_penguji_5_id.eq.${user.id},koordinator_pli_id.eq.${user.id}`
       )
       .order("tahun", { ascending: false }),
     supabase
@@ -52,6 +52,8 @@ export async function GET() {
       if (r.dosen_penguji_1_id === user.id) peran.push("Penguji I");
       if (r.dosen_penguji_2_id === user.id) peran.push("Penguji II");
       if (r.dosen_penguji_3_id === user.id) peran.push("Penguji III");
+      if (r.dosen_penguji_4_id === user.id) peran.push("Penguji IV");
+      if (r.dosen_penguji_5_id === user.id) peran.push("Penguji V");
     }
     sheet.addRow({
       judul: r.judul,

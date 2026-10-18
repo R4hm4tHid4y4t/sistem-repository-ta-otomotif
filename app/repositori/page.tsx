@@ -33,7 +33,9 @@ export default async function RepositoriPage({
       pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
       penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
       penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap),
-      penguji3:profiles!tugas_akhir_dosen_penguji_3_id_fkey(nama_lengkap)
+      penguji3:profiles!tugas_akhir_dosen_penguji_3_id_fkey(nama_lengkap),
+      penguji4:profiles!tugas_akhir_dosen_penguji_4_id_fkey(nama_lengkap),
+      penguji5:profiles!tugas_akhir_dosen_penguji_5_id_fkey(nama_lengkap)
     `)
     .eq("status_verifikasi", "diterima")
     .order("created_at", { ascending: false });
@@ -49,7 +51,7 @@ export default async function RepositoriPage({
     query = query.or(`dosen_pembimbing_id.eq.${searchParams.pembimbing},dosen_pembimbing_2_id.eq.${searchParams.pembimbing}`);
   }
   if (searchParams.penguji) {
-    query = query.or(`dosen_penguji_1_id.eq.${searchParams.penguji},dosen_penguji_2_id.eq.${searchParams.penguji},dosen_penguji_3_id.eq.${searchParams.penguji}`);
+    query = query.or(`dosen_penguji_1_id.eq.${searchParams.penguji},dosen_penguji_2_id.eq.${searchParams.penguji},dosen_penguji_3_id.eq.${searchParams.penguji},dosen_penguji_4_id.eq.${searchParams.penguji},dosen_penguji_5_id.eq.${searchParams.penguji}`);
   }
   if (searchParams.sdg) query = query.contains("sdgs", [Number(searchParams.sdg)]);
 

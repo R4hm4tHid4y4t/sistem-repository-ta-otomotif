@@ -31,6 +31,8 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
       penguji1:profiles!tugas_akhir_dosen_penguji_1_id_fkey(nama_lengkap),
       penguji2:profiles!tugas_akhir_dosen_penguji_2_id_fkey(nama_lengkap),
       penguji3:profiles!tugas_akhir_dosen_penguji_3_id_fkey(nama_lengkap),
+      penguji4:profiles!tugas_akhir_dosen_penguji_4_id_fkey(nama_lengkap),
+      penguji5:profiles!tugas_akhir_dosen_penguji_5_id_fkey(nama_lengkap),
       koordinator:profiles!tugas_akhir_koordinator_pli_id_fkey(nama_lengkap)
     `)
     .eq("id", params.id)
@@ -167,6 +169,8 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
               <Info label="Penguji I" value={ta.penguji1?.nama_lengkap ?? "-"} />
               <Info label="Penguji II" value={ta.penguji2?.nama_lengkap ?? "-"} />
               {ta.penguji3?.nama_lengkap && <Info label="Penguji III" value={ta.penguji3.nama_lengkap} />}
+              {ta.penguji4?.nama_lengkap && <Info label="Penguji IV" value={ta.penguji4.nama_lengkap} />}
+              {ta.penguji5?.nama_lengkap && <Info label="Penguji V" value={ta.penguji5.nama_lengkap} />}
               <Info
                 label="Diunggah"
                 value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}

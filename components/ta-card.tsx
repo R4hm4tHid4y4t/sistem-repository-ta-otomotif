@@ -21,6 +21,8 @@ export type TACardData = {
   penguji1?: Dosen;
   penguji2?: Dosen;
   penguji3?: Dosen;
+  penguji4?: Dosen;
+  penguji5?: Dosen;
 };
 
 export function TACard({ ta, sdgsList }: { ta: TACardData; sdgsList: SdgItem[] }) {
@@ -28,7 +30,7 @@ export function TACard({ ta, sdgsList }: { ta: TACardData; sdgsList: SdgItem[] }
   const Icon = meta?.icon ?? Cog;
 
   const pembimbingNames = [ta.pembimbing1?.nama_lengkap, ta.pembimbing2?.nama_lengkap].filter(Boolean).join(" & ");
-  const pengujiNames = [ta.penguji1?.nama_lengkap, ta.penguji2?.nama_lengkap, ta.penguji3?.nama_lengkap].filter(Boolean).join(" & ");
+  const pengujiNames = [ta.penguji1?.nama_lengkap, ta.penguji2?.nama_lengkap, ta.penguji3?.nama_lengkap, ta.penguji4?.nama_lengkap, ta.penguji5?.nama_lengkap].filter(Boolean).join(" & ");
 
   return (
     <a href={`/ta/${ta.id}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
