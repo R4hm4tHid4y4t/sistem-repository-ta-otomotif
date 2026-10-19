@@ -15,6 +15,12 @@ export default async function KaryaSayaPage({
     .eq("mahasiswa_id", user?.id)
     .order("created_at", { ascending: false });
 
+  const rows = daftarKarya ?? [];
+  const aktif = rows.filter((k) => k.status_verifikasi !== "ditolak");
+  const adaPlk = aktif.some((k) => k.jenis_doc === "laporan_pkl");
+  const adaPtk = aktif.some((k) => k.jenis_doc === "laporan_ptk");
+  const laporanKurang = adaPlk && !adaPtk ? "Laporan PTK" : adaPtk && !adaPlk ? "Laporan PLK" : null;
+
   return (
     <div>
       <h1 className="mb-4 text-xl font-semibold text-primary-800">Karya Saya</h1>
@@ -23,32 +29,29 @@ export default async function KaryaSayaPage({
           Karya berhasil diunggah dan langsung tayang di repositori.
         </p>
       )}
+      {laporanKurang && (
+        <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+          Laporan PLK dan Laporan PTK sama-sama wajib. Kamu belum mengunggah <strong>{laporanKurang}</strong>.{" "}
+          <Link href="/dashboard/mahasiswa/upload" className="font-medium underline">Unggah sekarang</Link>
+        </p>
+      )}
       <ul className="space-y-2">
-        {(daftarKarya ?? []).map((karya) => (
+        {rows.map((karya) => (
           <li key={karya.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <div>
-              <div className="mb-1 flex items-center gap-1.5">
-                {karya.jenis_doc && (
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600">
-                    {LABEL_JENIS_DOC[karya.jenis_doc as JenisDoc]}
-                  </span>
-                )}
-              </div>
               <Link href={`/ta/${karya.id}`} className="font-medium text-primary-700 hover:underline">{karya.judul}</Link>
-              <p className="text-sm text-slate-500">{karya.tahun}</p>
+              <p className="text-sm text-slate-500">
+                {LABEL_JENIS_DOC[karya.jenis_doc as JenisDoc] ?? karya.jenis_doc} · {karya.tahun}
+              </p>
             </div>
             {karya.status_verifikasi === "ditolak" ? (
-              <span className="shrink-0 rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Ditarik oleh admin</span>
+              <span className="rounded bg-slate-200 px-2 py-0.5 text-xs text-slate-600">Ditarik oleh admin</span>
             ) : (
-              <span className="shrink-0 rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Tayang</span>
+              <span className="rounded bg-green-100 px-2 py-0.5 text-xs text-green-700">Tayang</span>
             )}
           </li>
         ))}
-        {(daftarKarya ?? []).length === 0 && (
-          <p className="text-slate-500">
-            Kamu belum mengunggah karya. <Link href="/dashboard/mahasiswa/upload" className="text-accent-600 hover:underline">Unggah sekarang →</Link>
-          </p>
-        )}
+        {rows.length === 0 && <p className="text-slate-500">Kamu belum mengunggah karya.</p>}
       </ul>
     </div>
   );

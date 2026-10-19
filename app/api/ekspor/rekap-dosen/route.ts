@@ -43,6 +43,8 @@ export async function GET() {
     const peran: string[] = [];
     if (jenis === "laporan_praktek_industri") {
       if (r.dosen_pembimbing_id === user.id) peran.push("Pembimbing PLI");
+    } else if (jenis === "laporan_ptk") {
+      if (r.dosen_pembimbing_id === user.id) peran.push("Pembimbing PTK");
     } else if (jenis === "laporan_pkl") {
       if (r.dosen_pembimbing_id === user.id) peran.push("Pembimbing PLK");
       if (r.koordinator_pli_id === user.id) peran.push("Koordinator PPLK/UPPL");

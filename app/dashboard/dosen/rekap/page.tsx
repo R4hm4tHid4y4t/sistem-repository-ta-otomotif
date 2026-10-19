@@ -32,6 +32,7 @@ export default async function RekapDosenPage() {
   );
   const bimbinganPli = rows.filter((r) => r.jenis_doc === "laporan_praktek_industri" && r.dosen_pembimbing_id === user.id);
   const bimbinganPlk = rows.filter((r) => r.jenis_doc === "laporan_pkl" && (r.dosen_pembimbing_id === user.id || r.koordinator_pli_id === user.id));
+  const bimbinganPtk = rows.filter((r) => r.jenis_doc === "laporan_ptk" && r.dosen_pembimbing_id === user.id);
 
   const jurnalSebagaiPenulis = (semuaJurnal ?? [])
     .map((r) => {
@@ -64,6 +65,10 @@ export default async function RekapDosenPage() {
       <div>
         <h2 className="mb-4 text-lg font-semibold text-primary-800">PLK yang Dibimbing/Dikoordinir</h2>
         <RekapTable rows={bimbinganPlk} />
+      </div>
+      <div>
+        <h2 className="mb-4 text-lg font-semibold text-primary-800">PTK yang Dibimbing</h2>
+        <RekapTable rows={bimbinganPtk} />
       </div>
       <div>
         <h2 className="mb-4 text-lg font-semibold text-primary-800">Jurnal (sebagai Penulis)</h2>

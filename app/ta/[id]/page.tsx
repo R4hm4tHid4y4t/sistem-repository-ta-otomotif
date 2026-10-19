@@ -44,7 +44,8 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
   const isPli = ta.jenis_doc === "laporan_praktek_industri";
   const isPlk = ta.jenis_doc === "laporan_pkl";
   const isJurnal = ta.jenis_doc === "jurnal";
-  const isLapangan = isPli || isPlk;
+  const isPtk = ta.jenis_doc === "laporan_ptk";
+  const isLapangan = isPli || isPlk || isPtk;
 
   const [{ data: terkait }, sdgsList] = await Promise.all([
     isLapangan
@@ -132,6 +133,19 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
               <Info label="Jabatan Pembimbing Lapangan" value={ta.jabatan_pembimbing_lapangan} />
               <Info label="Dosen Pembimbing PLI" value={ta.pembimbing1?.nama_lengkap ?? "-"} />
               {ta.koordinator?.nama_lengkap && <Info label="Koordinator PLI" value={ta.koordinator.nama_lengkap} />}
+              <Info
+                label="Diunggah"
+                value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+              />
+            </div>
+          ) : isPtk ? (
+            <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
+              <Info label="Penulis" value={ta.mahasiswa?.nama_lengkap} />
+              <Info label="NIM" value={ta.mahasiswa?.nim} />
+              <Info label="Tahun" value={String(ta.tahun)} />
+              <Info label="Nama Sekolah" value={ta.nama_perusahaan} />
+              <Info label="Semester Pelaksanaan" value={ta.semester_pelaksanaan} />
+              <Info label="Dosen Pembimbing PTK" value={ta.pembimbing1?.nama_lengkap ?? "-"} />
               <Info
                 label="Diunggah"
                 value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
@@ -250,7 +264,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             </div>
           )}
 
-          {!isLapangan && !isJurnal && ta.kata_kunci?.length > 0 && (
+          {!isPli && !isPlk && !isJurnal && ta.kata_kunci?.length > 0 && (
             <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
               <p className="mb-2 font-medium text-primary-800">Kata Kunci</p>
               <div className="flex flex-wrap gap-2">

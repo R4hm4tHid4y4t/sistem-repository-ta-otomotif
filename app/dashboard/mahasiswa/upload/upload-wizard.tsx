@@ -72,6 +72,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const isPli = jenisDoc === "laporan_praktek_industri";
   const isPlk = jenisDoc === "laporan_pkl";
   const isJurnal = jenisDoc === "jurnal";
+  const isPtk = jenisDoc === "laporan_ptk";
 
   const stepLabels = isPlk
     ? ["Metadata", "Pembimbing & Waktu", "Upload File", "Review & Submit", "Sukses"]
@@ -205,6 +206,19 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     return true;
   }
 
+  function validasiMetadataPtk() {
+    if (hitungKata(abstrak) > MAKS_KATA_ABSTRAK) {
+      setError(`Abstrak maksimal ${MAKS_KATA_ABSTRAK} kata (sekarang ${hitungKata(abstrak)} kata).`);
+      return false;
+    }
+    if (!judul || !namaPerusahaan || !pembimbing1 || !semesterPelaksanaan || !abstrak) {
+      setError("Lengkapi semua field bertanda * dulu ya.");
+      return false;
+    }
+    setError(null);
+    return true;
+  }
+
   function validasiMetadataPlk() {
     if (!jenisDoc) {
       setError("Pilih Jenis Dokumen dulu.");
@@ -260,6 +274,11 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       fd.set("tanggal_selesai_pli", tanggalSelesai);
       fd.set("semester_pelaksanaan", semesterPelaksanaan);
       fd.set("tahun", String(new Date(tanggalSelesai).getFullYear()));
+    } else if (isPtk) {
+      fd.set("nama_perusahaan", namaPerusahaan);
+      fd.set("semester_pelaksanaan", semesterPelaksanaan);
+      fd.set("kata_kunci", kataKunci);
+      fd.set("tahun", tahun);
     } else if (isJurnal) {
       fd.set("tahun", tahun);
       fd.set("kategori_id", kategoriId);
@@ -371,6 +390,15 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               <Row label="Koordinator PLI" value={koordinatorPliId ? namaDosen(koordinatorPliId) : "-"} />
               <Row label="Periode" value={`${tanggalMulai || "-"} s.d. ${tanggalSelesai || "-"}`} />
               <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
+            </>
+          ) : isPtk ? (
+            <>
+              <Row label="Judul Laporan PTK" value={judul} />
+              <Row label="Nama Sekolah" value={namaPerusahaan} />
+              <Row label="Dosen Pembimbing PTK" value={namaDosen(pembimbing1)} />
+              <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
+              <Row label="Tahun" value={tahun} />
+              <Row label="Kata Kunci" value={kataKunci || "-"} />
             </>
           ) : isJurnal ? (
             <>
@@ -771,7 +799,56 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
             </>
           )}
 
-          {jenisDoc && !isPli && !isPlk && !isJurnal && (
+          {isPtk && (
+            <>
+              <div className="rounded-xl border border-primary-100 bg-primary-50 p-4 text-sm">
+                <p className="font-medium text-primary-800">Laporan Penelitian Tindakan Kelas (PTK)</p>
+                <p className="mt-1 text-primary-700">
+                  Laporan PTK adalah laporan kedua yang wajib diunggah bersama Laporan PLK. Unggah sebagai karya terpisah.
+                </p>
+              </div>
+
+              <Field label="Judul Laporan PTK *">
+                <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <Field label="Nama Sekolah *">
+                <input value={namaPerusahaan} onChange={(e) => setNamaPerusahaan(e.target.value)} placeholder='contoh: "SMK Negeri 1 Padang"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+
+              <Field label="Dosen Pembimbing PTK *">
+                <select value={pembimbing1} onChange={(e) => setPembimbing1(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                  <option value="">Pilih dosen pembimbing...</option>
+                  {dosenList.map((d) => <option key={d.id} value={d.id}>{d.nama_lengkap}</option>)}
+                </select>
+              </Field>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Semester Pelaksanaan *">
+                  <select value={semesterPelaksanaan} onChange={(e) => setSemesterPelaksanaan(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
+                    <option value="">Pilih semester...</option>
+                    {opsiSemester().map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </Field>
+                <Field label="Tahun *">
+                  <input type="number" value={tahun} onChange={(e) => setTahun(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+              </div>
+
+              <Field label="Abstrak *">
+                <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={5} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                <p className={`mt-1 text-xs ${hitungKata(abstrak) > MAKS_KATA_ABSTRAK ? "text-amber-700" : "text-slate-500"}`}>
+                  {hitungKata(abstrak)} / {MAKS_KATA_ABSTRAK} kata
+                </p>
+              </Field>
+
+              <Field label="Kata Kunci (pisahkan dengan koma)">
+                <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+              </Field>
+            </>
+          )}
+
+          {jenisDoc && !isPli && !isPlk && !isJurnal && !isPtk && (
             <>
               <Field label="Judul *">
                 <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
@@ -887,7 +964,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           <div className="flex justify-end">
             <button
               onClick={() => {
-                const ok = isPlk ? validasiMetadataPlk() : isJurnal ? validasiMetadataJurnal() : validasiMetadataStandar();
+                const ok = isPlk ? validasiMetadataPlk() : isJurnal ? validasiMetadataJurnal() : isPtk ? validasiMetadataPtk() : validasiMetadataStandar();
                 if (ok) setLangkah(2);
               }}
               className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"

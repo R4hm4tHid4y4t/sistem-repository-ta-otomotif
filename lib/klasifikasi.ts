@@ -1,16 +1,17 @@
 export type Prodi = "s1_pend_otomotif" | "d3_otomotif";
-export type JenisDoc = "ta" | "jurnal" | "laporan_pkl" | "laporan_praktek_industri";
+export type JenisDoc = "ta" | "jurnal" | "laporan_pkl" | "laporan_ptk" | "laporan_praktek_industri";
 export type Bidang = "kependidikan" | "non_kependidikan";
 
 export const LABEL_JENIS_DOC: Record<JenisDoc, string> = {
   ta: "Tugas Akhir / Skripsi",
   jurnal: "Jurnal",
   laporan_pkl: "Laporan Praktik Lapangan Kependidikan (PLK)",
+  laporan_ptk: "Laporan Penelitian Tindakan Kelas (PTK)",
   laporan_praktek_industri: "Laporan Praktik Lapangan Industri (PLI)",
 };
 
 export const JENIS_DOC_PER_PRODI: Record<Prodi, JenisDoc[]> = {
-  s1_pend_otomotif: ["ta", "jurnal", "laporan_pkl", "laporan_praktek_industri"],
+  s1_pend_otomotif: ["ta", "jurnal", "laporan_pkl", "laporan_ptk", "laporan_praktek_industri"],
   d3_otomotif: ["ta", "laporan_praktek_industri"],
 };
 

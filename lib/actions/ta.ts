@@ -46,7 +46,7 @@ export async function uploadTugasAkhir(formData: FormData) {
   const doi_jurnal = (formData.get("doi_jurnal") as string) || null;
 
   const jumlahKataAbstrak = (abstrak ?? "").trim().split(/\s+/).filter(Boolean).length;
-  if ((jenis_doc === "ta" || jenis_doc === "jurnal") && jumlahKataAbstrak > 350) {
+  if ((jenis_doc === "ta" || jenis_doc === "jurnal" || jenis_doc === "laporan_ptk") && jumlahKataAbstrak > 350) {
     throw new Error("Abstrak maksimal 350 kata.");
   }
   const judul_en = (formData.get("judul_en") as string) || null;
