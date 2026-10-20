@@ -20,6 +20,7 @@ const MENU: Record<string, { href: string; label: string }[]> = {
     { href: "/dashboard/admin/master-data", label: "Master Dosen" },
     { href: "/dashboard/admin/kategori", label: "Kategori" },
     { href: "/dashboard/admin/sdgs", label: "Kelola SDGs" },
+    { href: "/dashboard/admin/ekspor", label: "Ekspor Excel" },
     { href: "/dashboard/admin/log", label: "Log Aktivitas" },
   ],
 };
@@ -27,7 +28,7 @@ const MENU: Record<string, { href: string; label: string }[]> = {
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // Gunakan cache data auth agar tidak memicu fetch berulang
   const { user, profile } = await getUserAndProfile();
-  
+
   if (!user || !profile) redirect("/login");
 
   const menu = MENU[profile.role] ?? [];
@@ -42,6 +43,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
               {item.label}
             </Link>
           ))}
+          <div className="my-2 border-t border-slate-100" />
+          <Link href="/akun" className="block rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-primary-50">
+            Ganti Kata Sandi
+          </Link>
         </nav>
       </aside>
       <section>{children}</section>
