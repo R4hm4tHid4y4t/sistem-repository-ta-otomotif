@@ -112,6 +112,28 @@ const SHEETS: Record<string, { nama: string; kolom: Kolom[] }> = {
   },
 };
 
+SHEETS.prestasi = {
+  nama: "Prestasi",
+  kolom: [
+    { header: "Judul Prestasi", width: 50, get: (r) => r.judul },
+    { header: "Nama", width: 25, get: (r) => nama(r.mahasiswa) },
+    { header: "NIM", width: 14, get: (r) => r.mahasiswa?.nim ?? "" },
+    { header: "Program Studi", width: 24, get: prodi },
+    {
+      header: "Kategori",
+      width: 16,
+      get: (r) => (r.kategori_prestasi === "akademik" ? "Akademik" : r.kategori_prestasi === "non_akademik" ? "Non Akademik" : ""),
+    },
+    {
+      header: "Tingkat",
+      width: 16,
+      get: (r) => (({ internasional: "Internasional", nasional: "Nasional", daerah: "Daerah" }) as Record<string, string>)[r.tingkat_prestasi] ?? "",
+    },
+    { header: "Tahun", width: 8, get: (r) => r.tahun },
+    ...AKHIR,
+  ],
+};
+
 const SELECT = `
   *,
   kategori_topik(nama_kategori),

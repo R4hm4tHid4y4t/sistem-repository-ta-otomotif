@@ -1,7 +1,16 @@
-import { User, Cog } from "lucide-react";
+import { User, Cog, Trophy } from "lucide-react";
 import { KATEGORI_META } from "@/lib/kategori-icons";
 import { cariSdg, type SdgItem } from "@/lib/sdgs";
-import { LABEL_JENIS_DOC, LABEL_BIDANG, type JenisDoc, type Bidang } from "@/lib/klasifikasi";
+import {
+  LABEL_JENIS_DOC,
+  LABEL_BIDANG,
+  LABEL_KATEGORI_PRESTASI,
+  LABEL_TINGKAT_PRESTASI,
+  type JenisDoc,
+  type Bidang,
+  type KategoriPrestasi,
+  type TingkatPrestasi,
+} from "@/lib/klasifikasi";
 
 type Dosen = { nama_lengkap: string } | null;
 
@@ -23,11 +32,14 @@ export type TACardData = {
   penguji3?: Dosen;
   penguji4?: Dosen;
   penguji5?: Dosen;
+  kategori_prestasi?: KategoriPrestasi | null;
+  tingkat_prestasi?: TingkatPrestasi | null;
 };
 
 export function TACard({ ta, sdgsList }: { ta: TACardData; sdgsList: SdgItem[] }) {
   const meta = ta.kategori_topik ? KATEGORI_META[ta.kategori_topik.nama_kategori] : undefined;
-  const Icon = meta?.icon ?? Cog;
+  const isPrestasi = ta.jenis_doc === "prestasi";
+  const Icon = isPrestasi ? Trophy : meta?.icon ?? Cog;
 
   const pembimbingNames = [ta.pembimbing1?.nama_lengkap, ta.pembimbing2?.nama_lengkap].filter(Boolean).join(" & ");
   const pengujiNames = [ta.penguji1?.nama_lengkap, ta.penguji2?.nama_lengkap, ta.penguji3?.nama_lengkap, ta.penguji4?.nama_lengkap, ta.penguji5?.nama_lengkap].filter(Boolean).join(" & ");
@@ -46,7 +58,14 @@ export function TACard({ ta, sdgsList }: { ta: TACardData; sdgsList: SdgItem[] }
           )}
           <span className="flex items-center gap-1 text-xs text-slate-500">
             <Icon className="h-3.5 w-3.5" style={{ color: meta?.warna ?? "#64748B" }} strokeWidth={1.75} />
-            {ta.kategori_topik?.nama_kategori ?? "Umum"}
+            {isPrestasi
+              ? [
+                  ta.kategori_prestasi && LABEL_KATEGORI_PRESTASI[ta.kategori_prestasi],
+                  ta.tingkat_prestasi && LABEL_TINGKAT_PRESTASI[ta.tingkat_prestasi],
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
+              : ta.kategori_topik?.nama_kategori ?? "Umum"}
           </span>
         </div>
         <span className="shrink-0 text-xs text-slate-400">{ta.tahun}</span>

@@ -44,6 +44,8 @@ export async function uploadTugasAkhir(formData: FormData) {
   const nama_kepala_sekolah = (formData.get("nama_kepala_sekolah") as string) || null;
   const nama_jurnal = (formData.get("nama_jurnal") as string) || null;
   const doi_jurnal = (formData.get("doi_jurnal") as string) || null;
+  const kategori_prestasi = (formData.get("kategori_prestasi") as string) || null;
+  const tingkat_prestasi = (formData.get("tingkat_prestasi") as string) || null;
 
   const jumlahKataAbstrak = (abstrak ?? "").trim().split(/\s+/).filter(Boolean).length;
   if ((jenis_doc === "ta" || jenis_doc === "jurnal" || jenis_doc === "laporan_ptk") && jumlahKataAbstrak > 350) {
@@ -71,13 +73,26 @@ export async function uploadTugasAkhir(formData: FormData) {
   const tanggal_selesai_pli = (formData.get("tanggal_selesai_pli") as string) || null;
   const semester_pelaksanaan = (formData.get("semester_pelaksanaan") as string) || null;
 
-  if (!file || file.size === 0) throw new Error("File PDF wajib diunggah.");
+  if (!file || file.size === 0) throw new Error("File wajib diunggah.");
 
-  const filePath = `${user.id}/${Date.now()}-${file.name}`;
+  const tipeBoleh =
+    jenis_doc === "prestasi" ? ["application/pdf", "image/jpeg", "image/png"] : ["application/pdf"];
+  if (!tipeBoleh.includes(file.type)) {
+    throw new Error(
+      jenis_doc === "prestasi" ? "Sertifikat harus berformat PDF, JPG, atau PNG." : "File harus berformat PDF."
+    );
+  }
+  if (jenis_doc === "prestasi") {
+    if (file.size > 4 * 1024 * 1024) throw new Error("Ukuran file sertifikat maksimal 4 MB.");
+    if (!kategori_prestasi || !tingkat_prestasi) throw new Error("Kategori dan tingkat prestasi wajib dipilih.");
+  }
+
+  const namaAman = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const filePath = `${user.id}/${Date.now()}-${namaAman}`;
 
   const { error: uploadError } = await supabase.storage
     .from("dokumen-ta")
-    .upload(filePath, file, { contentType: "application/pdf", upsert: false });
+    .upload(filePath, file, { contentType: file.type, upsert: false });
   if (uploadError) throw uploadError;
 
    const { data: inserted, error: insertError } = await supabase
@@ -104,6 +119,8 @@ export async function uploadTugasAkhir(formData: FormData) {
       nama_kepala_sekolah,
       nama_jurnal,
       doi_jurnal,
+      kategori_prestasi,
+      tingkat_prestasi,
       judul_en,
       abstrak_en,
       kata_kunci_en,

@@ -4,7 +4,17 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { uploadTugasAkhir } from "@/lib/actions/ta";
 import type { SdgItem } from "@/lib/sdgs";
-import { JENIS_DOC_PER_PRODI, KBK_PER_PRODI, LABEL_JENIS_DOC, type Prodi, type JenisDoc } from "@/lib/klasifikasi";
+import {
+  JENIS_DOC_PER_PRODI,
+  KBK_PER_PRODI,
+  LABEL_JENIS_DOC,
+  LABEL_KATEGORI_PRESTASI,
+  LABEL_TINGKAT_PRESTASI,
+  type Prodi,
+  type JenisDoc,
+  type KategoriPrestasi,
+  type TingkatPrestasi,
+} from "@/lib/klasifikasi";
 
 type Kategori = { id: string; nama_kategori: string };
 type Dosen = { id: string; nama_lengkap: string; jabatan: string | null };
@@ -52,6 +62,8 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   // Field khusus Jurnal
   const [namaJurnal, setNamaJurnal] = useState("");
   const [doiJurnal, setDoiJurnal] = useState("");
+  const [kategoriPrestasi, setKategoriPrestasi] = useState<KategoriPrestasi | "">("");
+  const [tingkatPrestasi, setTingkatPrestasi] = useState<TingkatPrestasi | "">("");
   const [judulEn, setJudulEn] = useState("");
   const [abstrakEn, setAbstrakEn] = useState("");
   const [kataKunciEn, setKataKunciEn] = useState("");
@@ -73,6 +85,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const isPlk = jenisDoc === "laporan_pkl";
   const isJurnal = jenisDoc === "jurnal";
   const isPtk = jenisDoc === "laporan_ptk";
+  const isPrestasi = jenisDoc === "prestasi";
 
   const stepLabels = isPlk
     ? ["Metadata", "Pembimbing & Waktu", "Upload File", "Review & Submit", "Sukses"]
@@ -139,8 +152,13 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
 
   function handleFileSelected(selected: File | null) {
     if (!selected) return;
-    if (selected.type !== "application/pdf") {
-      setError("Hanya file berformat PDF yang diperbolehkan.");
+    const tipeBoleh = isPrestasi ? ["application/pdf", "image/jpeg", "image/png"] : ["application/pdf"];
+    if (!tipeBoleh.includes(selected.type)) {
+      setError(isPrestasi ? "Sertifikat harus berformat PDF, JPG, atau PNG." : "Hanya file berformat PDF yang diperbolehkan.");
+      return;
+    }
+    if (isPrestasi && selected.size > 4 * 1024 * 1024) {
+      setError("Ukuran file sertifikat maksimal 4 MB.");
       return;
     }
     setError(null);
@@ -206,6 +224,21 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     return true;
   }
 
+  function validasiMetadataPrestasi() {
+    const tahunIni = new Date().getFullYear();
+    const tahunNum = Number(tahun);
+    if (!kategoriPrestasi || !tingkatPrestasi || !judul.trim()) {
+      setError("Pilih kategori dan tingkat prestasi, lalu isi judulnya dulu ya.");
+      return false;
+    }
+    if (!tahunNum || tahunNum < 2000 || tahunNum > tahunIni) {
+      setError(`Tahun harus antara 2000 dan ${tahunIni}.`);
+      return false;
+    }
+    setError(null);
+    return true;
+  }
+
   function validasiMetadataPtk() {
     if (hitungKata(abstrak) > MAKS_KATA_ABSTRAK) {
       setError(`Abstrak maksimal ${MAKS_KATA_ABSTRAK} kata (sekarang ${hitungKata(abstrak)} kata).`);
@@ -242,7 +275,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   }
 
   function handleSubmit() {
-    if (!file) return setError("File PDF wajib diunggah.");
+    if (!file) return setError("File wajib diunggah.");
     setError(null);
 
     const fd = new FormData();
@@ -274,6 +307,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       fd.set("tanggal_selesai_pli", tanggalSelesai);
       fd.set("semester_pelaksanaan", semesterPelaksanaan);
       fd.set("tahun", String(new Date(tanggalSelesai).getFullYear()));
+    } else if (isPrestasi) {
+      fd.set("tahun", tahun);
+      fd.set("kategori_prestasi", kategoriPrestasi);
+      fd.set("tingkat_prestasi", tingkatPrestasi);
     } else if (isPtk) {
       fd.set("nama_perusahaan", namaPerusahaan);
       fd.set("semester_pelaksanaan", semesterPelaksanaan);
@@ -324,8 +361,8 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   function renderUploadStep(nomorSebelum: number, nomorSesudah: number) {
     return (
       <div className="space-y-4">
-        <p className="text-sm font-medium text-primary-800">Upload File Dokumen</p>
-        <input ref={fileInputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)} />
+        <p className="text-sm font-medium text-primary-800">{isPrestasi ? "Upload File Sertifikat" : "Upload File Dokumen"}</p>
+        <input ref={fileInputRef} type="file" accept={isPrestasi ? "application/pdf,image/jpeg,image/png" : "application/pdf"} hidden onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)} />
         <div
           onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
           onDragLeave={() => setDragActive(false)}
@@ -339,20 +376,20 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           {file ? (
             <>
               <span className="font-medium text-primary-700">{file.name}</span>
-              <span className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB · PDF</span>
+              <span className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB · {file.type === "application/pdf" ? "PDF" : "Gambar"}</span>
               <span className="text-xs text-accent-600">Ganti file</span>
             </>
           ) : (
-            <span className="text-sm text-slate-500">Drag & drop file PDF ke sini, atau klik untuk memilih</span>
+            <span className="text-sm text-slate-500">{isPrestasi ? "Drag & drop sertifikat (PDF, JPG, atau PNG) ke sini, atau klik untuk memilih" : "Drag & drop file PDF ke sini, atau klik untuk memilih"}</span>
           )}
         </div>
         <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-          Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD) di dalamnya. Hanya file berformat PDF yang diterima.
+          {isPrestasi ? "Pastikan sertifikat jelas terbaca. Format yang diterima: PDF, JPG, atau PNG (maksimal 4 MB)." : "Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD) di dalamnya. Hanya file berformat PDF yang diterima."}
         </p>
         <div className="flex justify-between">
           <button onClick={() => setLangkah(nomorSebelum)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>
           <button
-            onClick={() => (file ? setLangkah(nomorSesudah) : setError("File PDF wajib diunggah."))}
+            onClick={() => (file ? setLangkah(nomorSesudah) : setError("File wajib diunggah."))}
             className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"
           >
             Lanjut →
@@ -390,6 +427,13 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               <Row label="Koordinator PLI" value={koordinatorPliId ? namaDosen(koordinatorPliId) : "-"} />
               <Row label="Periode" value={`${tanggalMulai || "-"} s.d. ${tanggalSelesai || "-"}`} />
               <Row label="Semester Pelaksanaan" value={semesterPelaksanaan || "-"} />
+            </>
+          ) : isPrestasi ? (
+            <>
+              <Row label="Kategori Prestasi" value={kategoriPrestasi ? LABEL_KATEGORI_PRESTASI[kategoriPrestasi] : "-"} />
+              <Row label="Tingkat" value={tingkatPrestasi ? LABEL_TINGKAT_PRESTASI[tingkatPrestasi] : "-"} />
+              <Row label="Judul" value={judul} />
+              <Row label="Tahun" value={tahun} />
             </>
           ) : isPtk ? (
             <>
@@ -848,7 +892,72 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
             </>
           )}
 
-          {jenisDoc && !isPli && !isPlk && !isJurnal && !isPtk && (
+          {isPrestasi && (
+            <>
+              <div className="rounded-xl border border-primary-100 bg-primary-50 p-4 text-sm">
+                <p className="font-medium text-primary-800">Prestasi</p>
+                <p className="mt-1 text-primary-700">Unggah sertifikat atau bukti prestasi akademik maupun non akademik.</p>
+              </div>
+
+              <div>
+                <p className="mb-2 text-sm font-medium text-primary-800">Kategori Prestasi *</p>
+                <div className="flex gap-3">
+                  {(Object.keys(LABEL_KATEGORI_PRESTASI) as KategoriPrestasi[]).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() => setKategoriPrestasi(k)}
+                      className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium ${
+                        kategoriPrestasi === k
+                          ? "border-accent-500 bg-accent-50 text-accent-700"
+                          : "border-slate-300 text-slate-600 hover:border-accent-300"
+                      }`}
+                    >
+                      {LABEL_KATEGORI_PRESTASI[k]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {kategoriPrestasi && (
+                <div>
+                  <p className="mb-2 text-sm font-medium text-primary-800">Tingkat *</p>
+                  <div className="flex gap-3">
+                    {(Object.keys(LABEL_TINGKAT_PRESTASI) as TingkatPrestasi[]).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setTingkatPrestasi(t)}
+                        className={`flex-1 rounded-lg border px-4 py-2 text-sm font-medium ${
+                          tingkatPrestasi === t
+                            ? "border-accent-500 bg-accent-50 text-accent-700"
+                            : "border-slate-300 text-slate-600 hover:border-accent-300"
+                        }`}
+                      >
+                        {LABEL_TINGKAT_PRESTASI[t]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <Field label="Judul Prestasi *">
+                <input
+                  value={judul}
+                  onChange={(e) => setJudul(e.target.value)}
+                  placeholder='contoh: "Juara 1 Lomba Karya Tulis Ilmiah Tingkat Nasional"'
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2"
+                />
+              </Field>
+
+              <Field label="Tahun *">
+                <input type="number" value={tahun} onChange={(e) => setTahun(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                <p className="mt-1 text-xs text-slate-500">Tahun prestasi diperoleh.</p>
+              </Field>
+            </>
+          )}
+
+          {jenisDoc && !isPli && !isPlk && !isJurnal && !isPtk && !isPrestasi && (
             <>
               <Field label="Judul *">
                 <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
@@ -964,7 +1073,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           <div className="flex justify-end">
             <button
               onClick={() => {
-                const ok = isPlk ? validasiMetadataPlk() : isJurnal ? validasiMetadataJurnal() : isPtk ? validasiMetadataPtk() : validasiMetadataStandar();
+                const ok = isPlk ? validasiMetadataPlk() : isJurnal ? validasiMetadataJurnal() : isPtk ? validasiMetadataPtk() : isPrestasi ? validasiMetadataPrestasi() : validasiMetadataStandar();
                 if (ok) setLangkah(2);
               }}
               className="rounded-lg bg-accent-500 px-5 py-2 text-white hover:bg-accent-600"

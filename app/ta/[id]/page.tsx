@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { getDaftarSdgs, cariSdg } from "@/lib/sdgs";
-import { LABEL_JENIS_DOC, LABEL_BIDANG, type JenisDoc, type Bidang } from "@/lib/klasifikasi";
+import { LABEL_JENIS_DOC, LABEL_BIDANG, LABEL_KATEGORI_PRESTASI, LABEL_TINGKAT_PRESTASI, type JenisDoc, type Bidang } from "@/lib/klasifikasi";
 import { DownloadTAButton } from "./download-button";
 
 const LABEL_PERAN_PENULIS: Record<string, string> = {
@@ -45,7 +45,8 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
   const isPlk = ta.jenis_doc === "laporan_pkl";
   const isJurnal = ta.jenis_doc === "jurnal";
   const isPtk = ta.jenis_doc === "laporan_ptk";
-  const isLapangan = isPli || isPlk || isPtk;
+  const isPrestasi = ta.jenis_doc === "prestasi";
+  const isLapangan = isPli || isPlk || isPtk || isPrestasi;
 
   const [{ data: terkait }, sdgsList] = await Promise.all([
     isLapangan
@@ -133,6 +134,24 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
               <Info label="Jabatan Pembimbing Lapangan" value={ta.jabatan_pembimbing_lapangan} />
               <Info label="Dosen Pembimbing PLI" value={ta.pembimbing1?.nama_lengkap ?? "-"} />
               {ta.koordinator?.nama_lengkap && <Info label="Koordinator PLI" value={ta.koordinator.nama_lengkap} />}
+              <Info
+                label="Diunggah"
+                value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+              />
+            </div>
+          ) : isPrestasi ? (
+            <div className="mt-4 grid gap-3 rounded-2xl border border-slate-100 bg-white p-5 text-sm shadow-sm sm:grid-cols-3">
+              <Info label="Nama" value={ta.mahasiswa?.nama_lengkap} />
+              <Info label="NIM" value={ta.mahasiswa?.nim} />
+              <Info label="Tahun" value={String(ta.tahun)} />
+              <Info
+                label="Kategori Prestasi"
+                value={(LABEL_KATEGORI_PRESTASI as Record<string, string>)[ta.kategori_prestasi] ?? "-"}
+              />
+              <Info
+                label="Tingkat"
+                value={(LABEL_TINGKAT_PRESTASI as Record<string, string>)[ta.tingkat_prestasi] ?? "-"}
+              />
               <Info
                 label="Diunggah"
                 value={new Date(ta.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
@@ -228,7 +247,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             </div>
           )}
 
-          {isJurnal ? (
+          {isPrestasi ? null : isJurnal ? (
             <>
               <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                 <p className="mb-2 font-medium text-primary-800">Abstrak</p>
@@ -278,12 +297,12 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
           <div className="mt-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <p className="font-medium text-primary-800">Pratinjau Dokumen</p>
-              {bolehUnduh && <DownloadTAButton taId={ta.id} label="Unduh PDF" />}
+              {bolehUnduh && <DownloadTAButton taId={ta.id} label={isPrestasi ? "Unduh Sertifikat" : "Unduh PDF"} />}
             </div>
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 py-16 text-center text-sm text-slate-400">
               <span className="text-3xl">📄</span>
               <p className="mt-2">
-                {bolehUnduh ? 'Klik "Unduh PDF" untuk membuka dokumen' : "Pratinjau memerlukan akun mahasiswa/dosen"}
+                {bolehUnduh ? (isPrestasi ? "Klik tombol unduh untuk membuka sertifikat" : 'Klik "Unduh PDF" untuk membuka dokumen') : "Pratinjau memerlukan akun mahasiswa/dosen"}
               </p>
             </div>
           </div>
@@ -293,7 +312,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
           <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
             <p className="mb-2 text-sm font-medium text-primary-800">Aksi</p>
             {bolehUnduh ? (
-              <DownloadTAButton taId={ta.id} />
+              <DownloadTAButton taId={ta.id} label={isPrestasi ? "Unduh Sertifikat" : undefined} />
             ) : (
               <>
                 <p className="mb-3 text-xs text-slate-500">Login sebagai mahasiswa atau dosen untuk mengunduh dokumen.</p>

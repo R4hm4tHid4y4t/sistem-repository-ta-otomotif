@@ -29,7 +29,7 @@ export default async function BerandaPage() {
     supabase
       .from("tugas_akhir")
       .select(`
-        id, judul, tahun, prodi, sdgs, kbk, jenis_doc, bidang,
+        id, judul, tahun, prodi, sdgs, kbk, jenis_doc, bidang, kategori_prestasi, tingkat_prestasi,
         kategori_topik(nama_kategori),
         mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim),
         pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
