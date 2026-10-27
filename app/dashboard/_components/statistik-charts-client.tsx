@@ -92,7 +92,7 @@ export function StatistikChartsClient({
         </div>
 
         <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="mb-3 text-sm font-medium text-primary-800">Distribusi per KBK</p>
+          <p className="mb-3 text-sm font-medium text-primary-800">Distribusi per Bidang Kajian</p>
           {perKbk.length === 0 ? (
             <p className="text-sm text-slate-400">Belum ada data.</p>
           ) : (

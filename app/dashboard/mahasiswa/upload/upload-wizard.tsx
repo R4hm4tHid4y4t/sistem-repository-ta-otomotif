@@ -186,7 +186,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       return false;
     }
     if (prodi === "s1_pend_otomotif" && !bidang) {
-      setError("Pilih Bidang (Kependidikan/Non-Kependidikan) dulu.");
+      setError("Pilih Jenis Penelitian (Kependidikan/Non-Kependidikan) dulu.");
       return false;
     }
     setError(null);
@@ -198,8 +198,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       setError(`Abstrak maksimal ${MAKS_KATA_ABSTRAK} kata (sekarang ${hitungKata(abstrak)} kata).`);
       return false;
     }
-    if (!doiJurnal) {
-      setError("DOI / link publikasi wajib diisi (jurnal harus sudah terbit).");
+    const linkPublikasi = doiJurnal.trim();
+    const linkValid = /^https?:\/\/\S+$/i.test(linkPublikasi) || /^10\.\d{4,9}\/\S+$/.test(linkPublikasi);
+    if (!linkValid) {
+      setError("Isi link publikasi yang valid (diawali https://) atau DOI (diawali 10.).");
       return false;
     }
     if (!namaJurnal || !judul || !abstrak || !kategoriId || !kbk || !bidang) {
@@ -447,12 +449,12 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           ) : isJurnal ? (
             <>
               <Row label="Nama Jurnal" value={namaJurnal} />
-              <Row label="DOI / Link" value={doiJurnal} />
+              <Row label="Link Publikasi" value={doiJurnal} />
               <Row label="Judul (ID)" value={judul} />
               {judulEn && <Row label="Judul (EN)" value={judulEn} />}
               <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
-              <Row label="KBK" value={kbk || "-"} />
-              <Row label="Bidang" value={bidang === "kependidikan" ? "Kependidikan" : bidang === "non_kependidikan" ? "Non-Kependidikan" : "-"} />
+              <Row label="Bidang Kajian" value={kbk || "-"} />
+              <Row label="Jenis Penelitian" value={bidang === "kependidikan" ? "Kependidikan" : bidang === "non_kependidikan" ? "Non-Kependidikan" : "-"} />
               {penulisList.map((p, i) => (
                 <Row
                   key={i}
@@ -560,39 +562,49 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                 <input value={namaJurnal} onChange={(e) => setNamaJurnal(e.target.value)} placeholder='contoh: "SISKAMI"' className="w-full rounded-lg border border-slate-300 px-3 py-2" />
               </Field>
 
-              <Field label="DOI / Link Publikasi *">
+              <Field label="Link Publikasi *">
                 <input
                   value={doiJurnal}
                   onChange={(e) => setDoiJurnal(e.target.value)}
-                  placeholder="contoh: 10.1234/siskami.v1i1.123 atau https://..."
+                  placeholder="contoh: https://nama-jurnal.ac.id/artikel/123"
                   className="w-full rounded-lg border border-slate-300 px-3 py-2"
                 />
-                <p className="mt-1 text-xs text-slate-500">Jurnal harus sudah terbit. Isi DOI atau tautan artikel di situs jurnal.</p>
+                <p className="mt-1 text-xs text-slate-500">Jurnal harus sudah terbit. Tempel tautan artikel di situs jurnal (DOI boleh dipakai kalau ada).</p>
               </Field>
 
-              <Field label="Judul (Bahasa Indonesia) *">
+              <Field label="Judul / Title *">
                 <input value={judul} onChange={(e) => setJudul(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-              </Field>
-              <Field label="Judul (Bahasa Inggris)">
-                <input value={judulEn} onChange={(e) => setJudulEn(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                <p className="mt-1 text-xs text-slate-500">Tulis persis seperti judul yang terbit di publikasi (satu isian saja, bahasa sesuai artikel).</p>
               </Field>
 
-              <Field label="Abstrak (Bahasa Indonesia) *">
+              <Field label="Abstrak / Abstract *">
                 <textarea value={abstrak} onChange={(e) => setAbstrak(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
                 <p className={`mt-1 text-xs ${hitungKata(abstrak) > MAKS_KATA_ABSTRAK ? "text-amber-700" : "text-slate-500"}`}>
                   {hitungKata(abstrak)} / {MAKS_KATA_ABSTRAK} kata
                 </p>
               </Field>
-              <Field label="Kata Kunci (pisahkan dengan koma)">
+
+              <Field label="Kata Kunci / Keywords (pisahkan dengan koma)">
                 <input value={kataKunci} onChange={(e) => setKataKunci(e.target.value)} placeholder="mis. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
               </Field>
 
-              <Field label="Abstract (English)">
-                <textarea value={abstrakEn} onChange={(e) => setAbstrakEn(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-              </Field>
-              <Field label="Keywords (English)">
-                <input value={kataKunciEn} onChange={(e) => setKataKunciEn(e.target.value)} placeholder="e.g. ESP32, Bluetooth, Sensor" className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-              </Field>
+              <details className="rounded-xl border border-slate-200 p-4">
+                <summary className="cursor-pointer text-sm font-medium text-primary-800">Tambah versi bahasa lain (opsional)</summary>
+                <p className="mt-2 text-xs text-slate-500">
+                  Hanya untuk karya lama yang punya judul dan abstrak dalam dua bahasa. Karya baru cukup satu isian di atas.
+                </p>
+                <div className="mt-3 space-y-4">
+                  <Field label="Judul versi bahasa lain">
+                    <input value={judulEn} onChange={(e) => setJudulEn(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                  </Field>
+                  <Field label="Abstrak versi bahasa lain">
+                    <textarea value={abstrakEn} onChange={(e) => setAbstrakEn(e.target.value)} rows={4} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                  </Field>
+                  <Field label="Kata kunci versi bahasa lain">
+                    <input value={kataKunciEn} onChange={(e) => setKataKunciEn(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                  </Field>
+                </div>
+              </details>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Kategori / Topik *">
@@ -603,9 +615,9 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                     ))}
                   </select>
                 </Field>
-                <Field label="KBK *">
+                <Field label="Bidang Kajian *">
                   <select value={kbk} onChange={(e) => setKbk(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                    <option value="">Pilih KBK</option>
+                    <option value="">Pilih bidang kajian</option>
                     {KBK_PER_PRODI[prodi].map((k) => (
                       <option key={k} value={k}>{k}</option>
                     ))}
@@ -613,7 +625,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                 </Field>
               </div>
 
-              <Field label="Bidang *">
+              <Field label="Jenis Penelitian *">
                 <div className="flex gap-4 text-sm">
                   <label className="flex items-center gap-2">
                     <input type="radio" name="bidang" checked={bidang === "kependidikan"} onChange={() => setBidang("kependidikan")} />
@@ -982,9 +994,9 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
                   ))}
                 </select>
               </Field>
-              <Field label="KBK (Kelompok Bidang Kajian) *">
+              <Field label="Bidang Kajian *">
                 <select value={kbk} onChange={(e) => setKbk(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                  <option value="">Pilih KBK</option>
+                  <option value="">Pilih bidang kajian</option>
                   {KBK_PER_PRODI[prodi].map((k) => (
                     <option key={k} value={k}>{k}</option>
                   ))}
@@ -992,7 +1004,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               </Field>
 
               {prodi === "s1_pend_otomotif" && (
-                <Field label="Bidang *">
+                <Field label="Jenis Penelitian *">
                   <div className="flex gap-4 text-sm">
                     <label className="flex items-center gap-2">
                       <input type="radio" name="bidang" checked={bidang === "kependidikan"} onChange={() => setBidang("kependidikan")} />

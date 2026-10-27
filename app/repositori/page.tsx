@@ -89,9 +89,9 @@ export default async function RepositoriPage({
 
           <FilterSelect name="tahun" label="Tahun" placeholder="Semua tahun" options={tahunOptions.map((t) => ({ value: String(t), label: String(t) }))} />
           <FilterSelect name="kategori" label="Kategori / Topik" placeholder="Semua kategori" options={(kategoriList ?? []).map((k) => ({ value: k.id, label: k.nama_kategori }))} />
-          <FilterSelect name="kbk" label="KBK" placeholder="Semua KBK" options={SEMUA_KBK.map((k) => ({ value: k, label: k }))} />
+          <FilterSelect name="kbk" label="Bidang Kajian" placeholder="Semua bidang kajian" options={SEMUA_KBK.map((k) => ({ value: k, label: k }))} />
           <FilterSelect name="jenis" label="Jenis Dokumen" placeholder="Semua jenis" options={Object.entries(LABEL_JENIS_DOC).map(([value, label]) => ({ value, label }))} />
-          <FilterSelect name="bidang" label="Bidang" placeholder="Semua bidang" options={Object.entries(LABEL_BIDANG).map(([value, label]) => ({ value, label }))} />
+          <FilterSelect name="bidang" label="Jenis Penelitian" placeholder="Semua jenis penelitian" options={Object.entries(LABEL_BIDANG).map(([value, label]) => ({ value, label }))} />
           <FilterSelect name="pembimbing" label="Dosen Pembimbing" placeholder="Semua dosen pembimbing" options={(dosenList ?? []).map((d) => ({ value: d.id, label: d.nama_lengkap }))} />
           <FilterSelect name="penguji" label="Dosen Penguji" placeholder="Semua dosen penguji" options={(dosenList ?? []).map((d) => ({ value: d.id, label: d.nama_lengkap }))} />
 

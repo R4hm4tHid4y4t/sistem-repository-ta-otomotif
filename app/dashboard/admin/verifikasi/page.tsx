@@ -27,8 +27,8 @@ export default async function KelolaTAPage() {
               <th className="p-3">Judul</th>
               <th className="p-3">Penulis</th>
               <th className="p-3">Jenis</th>
-              <th className="p-3">KBK</th>
-              <th className="p-3">Bidang</th>
+              <th className="p-3">Bidang Kajian</th>
+              <th className="p-3">Jenis Penelitian</th>
               <th className="p-3">Pembimbing I & II</th>
               <th className="p-3">Penguji I–V</th>
               <th className="p-3">Status</th>

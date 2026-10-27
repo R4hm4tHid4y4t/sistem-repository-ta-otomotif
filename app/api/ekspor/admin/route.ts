@@ -29,8 +29,8 @@ const SHEETS: Record<string, { nama: string; kolom: Kolom[] }> = {
     kolom: [
       ...AWAL,
       { header: "Kategori", width: 22, get: (r) => r.kategori_topik?.nama_kategori ?? "" },
-      { header: "KBK", width: 24, get: (r) => r.kbk ?? "" },
-      { header: "Bidang", width: 18, get: (r) => (r.bidang === "kependidikan" ? "Kependidikan" : r.bidang === "non_kependidikan" ? "Non-Kependidikan" : "") },
+      { header: "Bidang Kajian", width: 24, get: (r) => r.kbk ?? "" },
+      { header: "Jenis Penelitian", width: 18, get: (r) => (r.bidang === "kependidikan" ? "Kependidikan" : r.bidang === "non_kependidikan" ? "Non-Kependidikan" : "") },
       { header: "Pembimbing I", width: 28, get: (r) => nama(r.pembimbing1) },
       { header: "Pembimbing II", width: 28, get: (r) => nama(r.pembimbing2) },
       { header: "Penguji", width: 50, get: (r) => gabung(nama(r.penguji1), nama(r.penguji2), nama(r.penguji3), nama(r.penguji4), nama(r.penguji5)) },
@@ -45,10 +45,10 @@ const SHEETS: Record<string, { nama: string; kolom: Kolom[] }> = {
       { header: "Judul (ID)", width: 50, get: (r) => r.judul },
       { header: "Judul (EN)", width: 40, get: (r) => r.judul_en ?? "" },
       { header: "Nama Jurnal", width: 22, get: (r) => r.nama_jurnal ?? "" },
-      { header: "DOI / Link", width: 36, get: (r) => r.doi_jurnal ?? "" },
+      { header: "Link Publikasi", width: 36, get: (r) => r.doi_jurnal ?? "" },
       { header: "Tahun", width: 8, get: (r) => r.tahun },
       { header: "Program Studi", width: 24, get: prodi },
-      { header: "KBK", width: 24, get: (r) => r.kbk ?? "" },
+      { header: "Bidang Kajian", width: 24, get: (r) => r.kbk ?? "" },
       {
         header: "Daftar Penulis",
         width: 60,

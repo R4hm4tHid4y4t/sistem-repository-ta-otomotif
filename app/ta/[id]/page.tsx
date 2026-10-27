@@ -175,7 +175,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
               <Info label="Nama Jurnal" value={ta.nama_jurnal} />
               {ta.doi_jurnal && (
                 <div>
-                  <p className="text-xs text-slate-400">DOI / Link Publikasi</p>
+                  <p className="text-xs text-slate-400">Link Publikasi</p>
                   <a
                     href={/^https?:\/\//i.test(ta.doi_jurnal) ? ta.doi_jurnal : `https://doi.org/${ta.doi_jurnal}`}
                     target="_blank"
