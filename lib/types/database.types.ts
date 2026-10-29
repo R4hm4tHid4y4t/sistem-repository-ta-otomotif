@@ -62,6 +62,8 @@ export interface TugasAkhir {
   doi_jurnal: string | null;
   kategori_prestasi: "akademik" | "non_akademik" | null;
   tingkat_prestasi: "internasional" | "nasional" | "daerah" | null;
+  penulis_nama: string | null;
+  penulis_nim: string | null;
   judul_en: string | null;
   abstrak_en: string | null;
   kata_kunci_en: string[] | null;

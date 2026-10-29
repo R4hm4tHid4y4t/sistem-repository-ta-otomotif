@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import ExcelJS from "exceljs";
+import { terapkanPenulis } from "@/lib/penulis";
 
 type Row = any;
 type Kolom = { header: string; width: number; get: (r: Row) => string | number };
@@ -188,7 +189,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  const rows = (data ?? []) as Row[];
+  const rows = ((data ?? []) as Row[]).map(terapkanPenulis);
 
   const workbook = new ExcelJS.Workbook();
   if (jenis === "semua") {

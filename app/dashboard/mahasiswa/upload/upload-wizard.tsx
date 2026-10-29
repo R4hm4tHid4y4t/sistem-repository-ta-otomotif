@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { uploadTugasAkhir } from "@/lib/actions/ta";
 import type { SdgItem } from "@/lib/sdgs";
 import {
@@ -34,6 +34,8 @@ function opsiSemester() {
 
 export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriList: Kategori[]; dosenList: Dosen[]; sdgsList: SdgItem[] }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const adminMode = pathname.startsWith("/dashboard/admin");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [langkah, setLangkah] = useState(1);
   const [isPending, startTransition] = useTransition();
@@ -58,6 +60,8 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const [penguji4, setPenguji4] = useState("");
   const [penguji5, setPenguji5] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [penulisNama, setPenulisNama] = useState("");
+  const [penulisNim, setPenulisNim] = useState("");
 
   // Field khusus Jurnal
   const [namaJurnal, setNamaJurnal] = useState("");
@@ -67,8 +71,8 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
   const [judulEn, setJudulEn] = useState("");
   const [abstrakEn, setAbstrakEn] = useState("");
   const [kataKunciEn, setKataKunciEn] = useState("");
-  const [jumlahPenulis, setJumlahPenulis] = useState(1);
-  const [penulisList, setPenulisList] = useState<Penulis[]>([{ nama: "", peran: "mahasiswa", peranLainnya: "", dosenId: "" }]);
+  const [jumlahPenulis, setJumlahPenulis] = useState(4);
+  const [penulisList, setPenulisList] = useState<Penulis[]>(Array.from({ length: 4 }, () => ({ nama: "", peran: "mahasiswa" as const, peranLainnya: "", dosenId: "" })));
 
   // Field bersama PLI & PLK (instansi/sekolah, pembimbing lapangan, waktu)
   const [namaPerusahaan, setNamaPerusahaan] = useState("");
@@ -287,6 +291,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     fd.set("jenis_doc", jenisDoc);
     fd.set("dosen_pembimbing_id", pembimbing1);
     fd.set("file", file);
+    if (adminMode) {
+      fd.set("penulis_nama", penulisNama.trim());
+      fd.set("penulis_nim", penulisNim.trim());
+    }
 
     if (isPlk) {
       fd.set("nama_perusahaan", namaPerusahaan);
@@ -349,6 +357,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     startTransition(async () => {
       try {
         const hasil = await uploadTugasAkhir(fd);
+        if (adminMode) {
+          router.push(`/dashboard/admin/unggah?berhasil=${Date.now()}`);
+          return;
+        }
         if (isPlk) {
           router.push(`/dashboard/mahasiswa/upload/berhasil${hasil?.id ? `?id=${hasil.id}` : ""}`);
         } else {
@@ -551,6 +563,21 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
             </Field>
           </div>
 
+          {adminMode && (
+            <div className="rounded-xl border border-accent-100 bg-accent-50 p-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-accent-700">Diunggah atas nama alumni</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Nama Penulis *">
+                  <input value={penulisNama} onChange={(e) => setPenulisNama(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+                <Field label="NIM Penulis *">
+                  <input value={penulisNim} onChange={(e) => setPenulisNim(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
+                </Field>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Karya akan tampil dengan nama dan NIM ini, bukan akun admin.</p>
+            </div>
+          )}
+
           {isJurnal && (
             <>
               <div className="rounded-xl border border-primary-100 bg-primary-50 p-4 text-sm">
@@ -656,9 +683,9 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               </div>
 
               <div>
-                <p className="mb-2 text-sm font-medium text-primary-800">Jumlah Penulis *</p>
+                <p className="mb-2 text-sm font-medium text-primary-800">Jumlah Penulis * (minimal 4, maksimal 6)</p>
                 <div className="flex gap-2">
-                  {[1, 2, 3].map((n) => (
+                  {[4, 5, 6].map((n) => (
                     <button
                       key={n}
                       type="button"
@@ -1085,6 +1112,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           <div className="flex justify-end">
             <button
               onClick={() => {
+                if (adminMode && (!penulisNama.trim() || !penulisNim.trim())) {
+                  setError("Isi nama dan NIM penulis (alumni) dulu ya.");
+                  return;
+                }
                 const ok = isPlk ? validasiMetadataPlk() : isJurnal ? validasiMetadataJurnal() : isPtk ? validasiMetadataPtk() : isPrestasi ? validasiMetadataPrestasi() : validasiMetadataStandar();
                 if (ok) setLangkah(2);
               }}

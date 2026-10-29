@@ -8,7 +8,13 @@ export async function uploadTugasAkhir(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Harus login sebagai mahasiswa.");
+    if (!user) throw new Error("Harus login sebagai mahasiswa.");
+
+  // Hanya admin yang boleh mengunggah atas nama orang lain
+  const { data: pemanggil } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const adalahAdmin = pemanggil?.role === "admin";
+  const penulis_nama = adalahAdmin ? (((formData.get("penulis_nama") as string) || "").trim() || null) : null;
+  const penulis_nim = adalahAdmin ? (((formData.get("penulis_nim") as string) || "").trim() || null) : null;
 
   const file = formData.get("file") as File;
   const judul = formData.get("judul") as string;
@@ -75,6 +81,10 @@ export async function uploadTugasAkhir(formData: FormData) {
 
   if (!file || file.size === 0) throw new Error("File wajib diunggah.");
 
+  if (jenis_doc === "jurnal" && (penulis_jurnal.length < 4 || penulis_jurnal.length > 6)) {
+    throw new Error("Jumlah penulis jurnal harus 4 sampai 6 orang.");
+  }
+
   const tipeBoleh =
     jenis_doc === "prestasi" ? ["application/pdf", "image/jpeg", "image/png"] : ["application/pdf"];
   if (!tipeBoleh.includes(file.type)) {
@@ -121,6 +131,8 @@ export async function uploadTugasAkhir(formData: FormData) {
       doi_jurnal,
       kategori_prestasi,
       tingkat_prestasi,
+      penulis_nama,
+      penulis_nim,
       judul_en,
       abstrak_en,
       kata_kunci_en,

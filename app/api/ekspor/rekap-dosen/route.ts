@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import ExcelJS from "exceljs";
+import { terapkanPenulis } from "@/lib/penulis";
 import { LABEL_JENIS_DOC, type JenisDoc } from "@/lib/klasifikasi";
 
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
     supabase
       .from("tugas_akhir")
       .select(
-        "judul, tahun, status_verifikasi, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, dosen_penguji_4_id, dosen_penguji_5_id, koordinator_pli_id, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)"
+        "judul, tahun, status_verifikasi, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, dosen_penguji_4_id, dosen_penguji_5_id, koordinator_pli_id, penulis_nama, penulis_nim, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)"
       )
       .or(
         `dosen_pembimbing_id.eq.${user.id},dosen_pembimbing_2_id.eq.${user.id},dosen_penguji_1_id.eq.${user.id},dosen_penguji_2_id.eq.${user.id},ddosen_penguji_3_id.eq.${user.id},dosen_penguji_4_id.eq.${user.id},dosen_penguji_5_id.eq.${user.id},koordinator_pli_id.eq.${user.id}`
@@ -20,7 +21,7 @@ export async function GET() {
       .order("tahun", { ascending: false }),
     supabase
       .from("tugas_akhir")
-      .select("judul, tahun, status_verifikasi, penulis_jurnal, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)")
+      .select("judul, tahun, status_verifikasi, penulis_jurnal, penulis_nama, penulis_nim, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim)")
       .eq("jenis_doc", "jurnal")
       .order("tahun", { ascending: false }),
   ]);
@@ -38,7 +39,7 @@ export async function GET() {
   ];
   sheet.getRow(1).font = { bold: true };
 
-  (rows ?? []).forEach((r: any) => {
+  (rows ?? []).map(terapkanPenulis).forEach((r: any) => {
     const jenis = r.jenis_doc as JenisDoc;
     const peran: string[] = [];
     if (jenis === "laporan_praktek_industri") {
@@ -68,7 +69,7 @@ export async function GET() {
     });
   });
 
-  (jurnalRows ?? []).forEach((r: any) => {
+  (jurnalRows ?? []).map(terapkanPenulis).forEach((r: any) => {
     const daftar: { nama: string; dosen_id?: string | null }[] = r.penulis_jurnal ?? [];
     const posisi = daftar.findIndex((p) => p.dosen_id === user.id);
     if (posisi < 0) return;

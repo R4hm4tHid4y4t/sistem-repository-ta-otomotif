@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { TACard } from "@/components/ta-card";
+import { terapkanPenulis } from "@/lib/penulis";
 import { FilterSelect } from "./filter-select";
 import { getDaftarSdgs } from "@/lib/sdgs";
 import { SEMUA_KBK, LABEL_JENIS_DOC, LABEL_BIDANG } from "@/lib/klasifikasi";
@@ -26,7 +27,7 @@ export default async function RepositoriPage({
   let query = supabase
     .from("tugas_akhir")
     .select(`
-      id, judul, tahun, prodi, sdgs, kbk, jenis_doc, bidang, kategori_prestasi, tingkat_prestasi,
+      id, judul, tahun, prodi, sdgs, kbk, jenis_doc, bidang, kategori_prestasi, tingkat_prestasi, penulis_nama, penulis_nim,
       kategori_topik(nama_kategori),
       mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim),
       pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
@@ -119,7 +120,7 @@ export default async function RepositoriPage({
         <div>
           <p className="mb-3 text-sm text-slate-500">{(daftarTA ?? []).length} karya ditemukan</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            {(daftarTA ?? []).map((ta: any) => (
+            {(daftarTA ?? []).map(terapkanPenulis).map((ta: any) => (
               <TACard key={ta.id} ta={ta} sdgsList={sdgsList} />
             ))}
             {(daftarTA ?? []).length === 0 && <p className="text-sm text-slate-500">Belum ada karya yang cocok.</p>}

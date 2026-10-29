@@ -16,6 +16,7 @@ const MENU: Record<string, { href: string; label: string }[]> = {
     { href: "/dashboard/admin", label: "Ringkasan" },
     { href: "/dashboard/admin/dashboard", label: "Dashboard" },
     { href: "/dashboard/admin/verifikasi", label: "Kelola Karya Ilmiah" },
+    { href: "/dashboard/admin/unggah", label: "Unggah Karya (Alumni)" },
     { href: "/dashboard/admin/pengguna", label: "Kelola Pengguna" },
     { href: "/dashboard/admin/master-data", label: "Master Dosen" },
     { href: "/dashboard/admin/kategori", label: "Kategori" },

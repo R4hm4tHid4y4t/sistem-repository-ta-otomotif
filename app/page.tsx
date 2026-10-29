@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { KATEGORI_META } from "@/lib/kategori-icons";
 import { TACard } from "@/components/ta-card";
+import { terapkanPenulis } from "@/lib/penulis";
 import { getDaftarSdgs } from "@/lib/sdgs";
 import { Cog } from "lucide-react";
 
@@ -29,7 +30,7 @@ export default async function BerandaPage() {
     supabase
       .from("tugas_akhir")
       .select(`
-        id, judul, tahun, prodi, sdgs, kbk, jenis_doc, bidang, kategori_prestasi, tingkat_prestasi,
+        id, judul, tahun, prodi, sdgs, kbk, jenis_doc, bidang, kategori_prestasi, tingkat_prestasi, penulis_nama, penulis_nim,
         kategori_topik(nama_kategori),
         mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap, nim),
         pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
@@ -117,7 +118,7 @@ export default async function BerandaPage() {
           <a href="/repositori" className="text-sm text-accent-600">Lihat semua →</a>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
-          {(terbaru ?? []).map((ta: any) => (
+          {(terbaru ?? []).map(terapkanPenulis).map((ta: any) => (
             <TACard key={ta.id} ta={ta} sdgsList={sdgsList} />
           ))}
           {(terbaru ?? []).length === 0 && <p className="text-sm text-slate-500">Belum ada karya yang terbit.</p>}

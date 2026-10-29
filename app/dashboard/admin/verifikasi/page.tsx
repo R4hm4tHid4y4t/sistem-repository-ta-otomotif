@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { verifikasiTugasAkhir } from "@/lib/actions/ta";
+import { terapkanPenulis } from "@/lib/penulis";
 import { LABEL_JENIS_DOC, LABEL_BIDANG, type JenisDoc, type Bidang } from "@/lib/klasifikasi";
 
 export default async function KelolaTAPage() {
@@ -7,7 +8,7 @@ export default async function KelolaTAPage() {
   const { data: daftarTA } = await supabase
     .from("tugas_akhir")
     .select(`
-      id, judul, tahun, status_verifikasi, kbk, jenis_doc, bidang,
+      id, judul, tahun, status_verifikasi, kbk, jenis_doc, bidang, penulis_nama, penulis_nim,
       mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap),
       pembimbing1:profiles!tugas_akhir_dosen_pembimbing_id_fkey(nama_lengkap),
       pembimbing2:profiles!tugas_akhir_dosen_pembimbing_2_id_fkey(nama_lengkap),
@@ -36,7 +37,7 @@ export default async function KelolaTAPage() {
             </tr>
           </thead>
           <tbody>
-            {(daftarTA ?? []).map((ta: any) => {
+            {(daftarTA ?? []).map(terapkanPenulis).map((ta: any) => {
               const pembimbing = [ta.pembimbing1?.nama_lengkap, ta.pembimbing2?.nama_lengkap].filter(Boolean).join(", ") || "-";
               const penguji = [ta.penguji1?.nama_lengkap, ta.penguji2?.nama_lengkap, ta.penguji3?.nama_lengkap, ta.penguji4?.nama_lengkap, ta.penguji5?.nama_lengkap].filter(Boolean).join(", ") || "-";
               return (

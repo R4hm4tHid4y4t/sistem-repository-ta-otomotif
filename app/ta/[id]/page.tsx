@@ -40,6 +40,9 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
     .single();
 
   if (!ta) return notFound();
+  if (ta.penulis_nama) {
+    ta.mahasiswa = { nama_lengkap: ta.penulis_nama, nim: ta.penulis_nim ?? null };
+  }
 
   const isPli = ta.jenis_doc === "laporan_praktek_industri";
   const isPlk = ta.jenis_doc === "laporan_pkl";
