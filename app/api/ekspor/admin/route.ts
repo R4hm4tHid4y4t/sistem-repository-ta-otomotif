@@ -29,7 +29,6 @@ const SHEETS: Record<string, { nama: string; kolom: Kolom[] }> = {
     nama: "TA-Skripsi",
     kolom: [
       ...AWAL,
-      { header: "Kategori", width: 22, get: (r) => r.kategori_topik?.nama_kategori ?? "" },
       { header: "Bidang Kajian", width: 24, get: (r) => r.kbk ?? "" },
       { header: "Jenis Penelitian", width: 18, get: (r) => (r.bidang === "kependidikan" ? "Kependidikan" : r.bidang === "non_kependidikan" ? "Non-Kependidikan" : "") },
       { header: "Pembimbing I", width: 28, get: (r) => nama(r.pembimbing1) },

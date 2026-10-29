@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { KATEGORI_META } from "@/lib/kategori-icons";
+import { KBK_META } from "@/lib/kategori-icons";
+import { SEMUA_KBK } from "@/lib/klasifikasi";
 import { TACard } from "@/components/ta-card";
 import { terapkanPenulis } from "@/lib/penulis";
 import { getDaftarSdgs } from "@/lib/sdgs";
@@ -92,20 +93,20 @@ export default async function BerandaPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 pb-10">
-        <h2 className="mb-4 text-lg font-heading font-semibold text-primary-800">Jelajahi Berdasarkan Kategori</h2>
+            <section className="mx-auto max-w-6xl px-4 pb-10">
+        <h2 className="mb-4 text-lg font-heading font-semibold text-primary-800">Jelajahi Berdasarkan Bidang Kajian</h2>
         <div className="grid gap-3 sm:grid-cols-4">
-          {(kategoriRows ?? []).map((k) => {
-            const meta = KATEGORI_META[k.nama_kategori];
+          {SEMUA_KBK.map((nama) => {
+            const meta = KBK_META[nama];
             const Icon = meta?.icon ?? Cog;
             return (
               <a
-                key={k.id}
-                href={`/repositori?kategori=${k.id}`}
+                key={nama}
+                href={`/repositori?kbk=${encodeURIComponent(nama)}`}
                 className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
               >
                 <Icon className="h-5 w-5" style={{ color: meta?.warna ?? "#64748B" }} strokeWidth={1.75} />
-                <p className="mt-2 text-sm font-medium text-primary-800">{k.nama_kategori}</p>
+                <p className="mt-2 text-sm font-medium text-primary-800">{nama}</p>
               </a>
             );
           })}

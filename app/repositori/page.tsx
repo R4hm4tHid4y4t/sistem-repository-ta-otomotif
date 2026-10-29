@@ -89,7 +89,6 @@ export default async function RepositoriPage({
           </div>
 
           <FilterSelect name="tahun" label="Tahun" placeholder="Semua tahun" options={tahunOptions.map((t) => ({ value: String(t), label: String(t) }))} />
-          <FilterSelect name="kategori" label="Kategori / Topik" placeholder="Semua kategori" options={(kategoriList ?? []).map((k) => ({ value: k.id, label: k.nama_kategori }))} />
           <FilterSelect name="kbk" label="Bidang Kajian" placeholder="Semua bidang kajian" options={SEMUA_KBK.map((k) => ({ value: k, label: k }))} />
           <FilterSelect name="jenis" label="Jenis Dokumen" placeholder="Semua jenis" options={Object.entries(LABEL_JENIS_DOC).map(([value, label]) => ({ value, label }))} />
           <FilterSelect name="bidang" label="Jenis Penelitian" placeholder="Semua jenis penelitian" options={Object.entries(LABEL_BIDANG).map(([value, label]) => ({ value, label }))} />

@@ -19,7 +19,6 @@ const MENU: Record<string, { href: string; label: string }[]> = {
     { href: "/dashboard/admin/unggah", label: "Unggah Karya (Alumni)" },
     { href: "/dashboard/admin/pengguna", label: "Kelola Pengguna" },
     { href: "/dashboard/admin/master-data", label: "Master Dosen" },
-    { href: "/dashboard/admin/kategori", label: "Kategori" },
     { href: "/dashboard/admin/sdgs", label: "Kelola SDGs" },
     { href: "/dashboard/admin/ekspor", label: "Ekspor Excel" },
     { href: "/dashboard/admin/log", label: "Log Aktivitas" },

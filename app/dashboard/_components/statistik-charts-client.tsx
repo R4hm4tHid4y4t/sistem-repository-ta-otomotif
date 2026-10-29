@@ -52,25 +52,6 @@ export function StatistikChartsClient({
             </ResponsiveContainer>
           )}
         </div>
-
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="mb-3 text-sm font-medium text-primary-800">Distribusi per Kategori / Topik</p>
-          {perKategori.length === 0 ? (
-            <p className="text-sm text-slate-400">Belum ada data.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={perKategori} dataKey="jumlah" nameKey="nama" innerRadius={50} outerRadius={80}>
-                  {perKategori.map((_, i) => (
-                    <Cell key={i} fill={WARNA_DONUT[i % WARNA_DONUT.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

@@ -17,9 +17,7 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
   ]);
 
   const rows = taRows ?? [];
-  const dosenMap = new Map(
-    (dosenRows ?? []).map((d) => [d.id, d.kode_dosen ? `${d.nama_lengkap} (${d.kode_dosen})` : d.nama_lengkap])
-  );
+  const dosenMap = new Map((dosenRows ?? []).map((d) => [d.id, d.nama_lengkap]));
   const kategoriMap = new Map((kategoriRows ?? []).map((k) => [k.id, k.nama_kategori]));
 
   const tahunSet = Array.from(new Set(rows.map((r) => r.tahun))).sort();

@@ -1,5 +1,5 @@
 import { User, Cog, Trophy } from "lucide-react";
-import { KATEGORI_META } from "@/lib/kategori-icons";
+import { KBK_META } from "@/lib/kategori-icons";
 import { cariSdg, type SdgItem } from "@/lib/sdgs";
 import {
   LABEL_JENIS_DOC,
@@ -23,7 +23,6 @@ export type TACardData = {
   kbk?: string | null;
   jenis_doc?: JenisDoc;
   bidang?: Bidang | null;
-  kategori_topik?: { nama_kategori: string } | null;
   mahasiswa?: { nama_lengkap: string; nim: string | null } | null;
   pembimbing1?: Dosen;
   pembimbing2?: Dosen;
@@ -37,12 +36,29 @@ export type TACardData = {
 };
 
 export function TACard({ ta, sdgsList }: { ta: TACardData; sdgsList: SdgItem[] }) {
-  const meta = ta.kategori_topik ? KATEGORI_META[ta.kategori_topik.nama_kategori] : undefined;
   const isPrestasi = ta.jenis_doc === "prestasi";
+  const meta = ta.kbk ? KBK_META[ta.kbk] : undefined;
   const Icon = isPrestasi ? Trophy : meta?.icon ?? Cog;
 
   const pembimbingNames = [ta.pembimbing1?.nama_lengkap, ta.pembimbing2?.nama_lengkap].filter(Boolean).join(" & ");
-  const pengujiNames = [ta.penguji1?.nama_lengkap, ta.penguji2?.nama_lengkap, ta.penguji3?.nama_lengkap, ta.penguji4?.nama_lengkap, ta.penguji5?.nama_lengkap].filter(Boolean).join(" & ");
+  const pengujiNames = [
+    ta.penguji1?.nama_lengkap,
+    ta.penguji2?.nama_lengkap,
+    ta.penguji3?.nama_lengkap,
+    ta.penguji4?.nama_lengkap,
+    ta.penguji5?.nama_lengkap,
+  ]
+    .filter(Boolean)
+    .join(" & ");
+
+  const labelUtama = isPrestasi
+    ? [
+        ta.kategori_prestasi && LABEL_KATEGORI_PRESTASI[ta.kategori_prestasi],
+        ta.tingkat_prestasi && LABEL_TINGKAT_PRESTASI[ta.tingkat_prestasi],
+      ]
+        .filter(Boolean)
+        .join(" · ")
+    : ta.kbk;
 
   return (
     <a href={`/ta/${ta.id}`} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
@@ -56,28 +72,17 @@ export function TACard({ ta, sdgsList }: { ta: TACardData; sdgsList: SdgItem[] }
               {LABEL_JENIS_DOC[ta.jenis_doc]}
             </span>
           )}
-          <span className="flex items-center gap-1 text-xs text-slate-500">
-            <Icon className="h-3.5 w-3.5" style={{ color: meta?.warna ?? "#64748B" }} strokeWidth={1.75} />
-            {isPrestasi
-              ? [
-                  ta.kategori_prestasi && LABEL_KATEGORI_PRESTASI[ta.kategori_prestasi],
-                  ta.tingkat_prestasi && LABEL_TINGKAT_PRESTASI[ta.tingkat_prestasi],
-                ]
-                  .filter(Boolean)
-                  .join(" · ")
-              : ta.kategori_topik?.nama_kategori ?? "Umum"}
-          </span>
+          {labelUtama && (
+            <span className="flex items-center gap-1 text-xs text-slate-500">
+              <Icon className="h-3.5 w-3.5" style={{ color: meta?.warna ?? "#64748B" }} strokeWidth={1.75} />
+              {labelUtama}
+            </span>
+          )}
         </div>
         <span className="shrink-0 text-xs text-slate-400">{ta.tahun}</span>
       </div>
 
-      {(ta.kbk || ta.bidang) && (
-        <p className="mb-1 text-xs text-slate-400">
-          {ta.kbk}
-          {ta.kbk && ta.bidang ? " · " : ""}
-          {ta.bidang && LABEL_BIDANG[ta.bidang]}
-        </p>
-      )}
+      {ta.bidang && <p className="mb-1 text-xs text-slate-400">{LABEL_BIDANG[ta.bidang]}</p>}
 
       <p className="mt-1 font-heading font-medium leading-snug text-primary-800">{ta.judul}</p>
 

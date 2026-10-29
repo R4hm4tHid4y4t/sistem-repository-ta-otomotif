@@ -58,7 +58,7 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
           .from("tugas_akhir")
           .select("id, judul, tahun, mahasiswa:profiles!tugas_akhir_mahasiswa_id_fkey(nama_lengkap)")
           .eq("status_verifikasi", "diterima")
-          .eq("kategori_id", ta.kategori_id)
+          .eq("kbk", ta.kbk)
           .neq("id", ta.id)
           .limit(2),
     getDaftarSdgs(),
@@ -88,9 +88,6 @@ export default async function DetailTAPage({ params }: { params: { id: string } 
             </span>
             {!isLapangan && (
               <>
-                <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
-                  {ta.kategori_topik?.nama_kategori ?? "Umum"}
-                </span>
                 {ta.kbk && (
                   <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">{ta.kbk}</span>
                 )}

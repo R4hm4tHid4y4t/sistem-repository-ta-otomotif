@@ -185,7 +185,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       setError(`Abstrak maksimal ${MAKS_KATA_ABSTRAK} kata (sekarang ${hitungKata(abstrak)} kata).`);
       return false;
     }
-    if (!judul || !abstrak || !kategoriId || !kbk || !pembimbing1 || !penguji1 || !penguji2) {
+    if (!judul || !abstrak || !kbk || !pembimbing1 || !penguji1 || !penguji2) {
       setError("Lengkapi semua field bertanda * dulu ya.");
       return false;
     }
@@ -208,7 +208,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       setError("Isi link publikasi yang valid (diawali https://) atau DOI (diawali 10.).");
       return false;
     }
-    if (!namaJurnal || !judul || !abstrak || !kategoriId || !kbk || !bidang) {
+    if (!namaJurnal || !judul || !abstrak ||!kbk || !bidang) {
       setError("Lengkapi semua field bertanda * dulu ya.");
       return false;
     }
@@ -464,7 +464,6 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               <Row label="Link Publikasi" value={doiJurnal} />
               <Row label="Judul (ID)" value={judul} />
               {judulEn && <Row label="Judul (EN)" value={judulEn} />}
-              <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
               <Row label="Bidang Kajian" value={kbk || "-"} />
               <Row label="Jenis Penelitian" value={bidang === "kependidikan" ? "Kependidikan" : bidang === "non_kependidikan" ? "Non-Kependidikan" : "-"} />
               {penulisList.map((p, i) => (
@@ -479,7 +478,6 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           ) : (
             <>
               <Row label="Judul" value={judul} />
-              <Row label="Kategori" value={kategoriList.find((k) => k.id === kategoriId)?.nama_kategori ?? "-"} />
               <Row label="Pembimbing I" value={namaDosen(pembimbing1)} />
               <Row label="Pembimbing II" value={pembimbing2 ? namaDosen(pembimbing2) : "-"} />
               <Row label="Penguji I" value={namaDosen(penguji1)} />
@@ -634,14 +632,6 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               </details>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Kategori / Topik *">
-                  <select value={kategoriId} onChange={(e) => setKategoriId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                    <option value="">Pilih kategori</option>
-                    {kategoriList.map((k) => (
-                      <option key={k.id} value={k.id}>{k.nama_kategori}</option>
-                    ))}
-                  </select>
-                </Field>
                 <Field label="Bidang Kajian *">
                   <select value={kbk} onChange={(e) => setKbk(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
                     <option value="">Pilih bidang kajian</option>
@@ -1012,14 +1002,6 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
               </Field>
               <Field label="Tahun *">
                 <input type="number" value={tahun} onChange={(e) => setTahun(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2" />
-              </Field>
-              <Field label="Kategori / Topik *">
-                <select value={kategoriId} onChange={(e) => setKategoriId(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
-                  <option value="">Pilih kategori</option>
-                  {kategoriList.map((k) => (
-                    <option key={k.id} value={k.id}>{k.nama_kategori}</option>
-                  ))}
-                </select>
               </Field>
               <Field label="Bidang Kajian *">
                 <select value={kbk} onChange={(e) => setKbk(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2">
