@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { MAKS_UKURAN_BERKAS_MB, MAKS_UKURAN_SERTIFIKAT_MB } from "@/lib/klasifikasi";
+import { simpanBerkas, hapusBerkas } from "@/lib/storage";
 
 export async function uploadTugasAkhir(formData: FormData) {
   const supabase = await createClient();
@@ -104,10 +105,7 @@ export async function uploadTugasAkhir(formData: FormData) {
   const namaAman = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const filePath = `${user.id}/${Date.now()}-${namaAman}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from("dokumen-ta")
-    .upload(filePath, file, { contentType: file.type, upsert: false });
-  if (uploadError) throw uploadError;
+  await simpanBerkas(filePath, file);
 
    const { data: inserted, error: insertError } = await supabase
     .from("tugas_akhir")
@@ -155,7 +153,10 @@ export async function uploadTugasAkhir(formData: FormData) {
     })
     .select("id")
     .single();
-  if (insertError) throw insertError;
+    if (insertError) {
+      await hapusBerkas(filePath);
+      throw insertError;
+    }
 
   await supabase.from("log_aktivitas").insert({
     user_id: user.id,
