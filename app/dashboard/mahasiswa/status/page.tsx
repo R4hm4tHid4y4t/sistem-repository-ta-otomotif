@@ -2,12 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { LABEL_JENIS_DOC, type JenisDoc } from "@/lib/klasifikasi";
 
-export default async function KaryaSayaPage({
-  searchParams,
-}: {
-  searchParams: { uploaded?: string };
-}) {
-  const supabase = createClient();
+export default async function KaryaSayaPage(
+  props: {
+    searchParams: Promise<{ uploaded?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const { data: daftarKarya } = await supabase
     .from("tugas_akhir")

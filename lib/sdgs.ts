@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 export type SdgItem = { nomor: number; nama: string; warna: string; deskripsi: string | null };
 
 export async function getDaftarSdgs(): Promise<SdgItem[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase.from("sdgs_master").select("*").order("nomor");
   return data ?? [];
 }

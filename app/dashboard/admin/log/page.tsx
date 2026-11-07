@@ -2,7 +2,7 @@
 import { createClient } from "@/lib/supabase/server";
 
 export default async function LogAktivitasPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: log } = await supabase
     .from("log_aktivitas")
     .select("aksi, deskripsi, created_at")

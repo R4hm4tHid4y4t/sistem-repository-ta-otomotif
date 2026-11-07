@@ -7,7 +7,7 @@ import { getDaftarSdgs } from "@/lib/sdgs";
 import { Cog } from "lucide-react";
 
 export default async function BerandaPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const tahunIni = new Date().getFullYear();
 
   const [

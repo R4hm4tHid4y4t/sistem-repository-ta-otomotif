@@ -1,7 +1,7 @@
 // Proteksi route /dashboard/* berdasarkan role di tabel profiles.
 // Ini yang menjawab pemisahan akses Mahasiswa / Dosen / Admin di use case diagram.
 import { NextResponse, type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { updateSession } from "./lib/supabase/proxy";
 
 const ROLE_HOME: Record<string, string> = {
   mahasiswa: "/dashboard/mahasiswa",
@@ -9,7 +9,7 @@ const ROLE_HOME: Record<string, string> = {
   admin: "/dashboard/admin",
 };
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { supabaseResponse, user, profile } = await updateSession(request);
   const path = request.nextUrl.pathname;
 

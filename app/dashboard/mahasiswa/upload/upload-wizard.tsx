@@ -10,6 +10,8 @@ import {
   LABEL_JENIS_DOC,
   LABEL_KATEGORI_PRESTASI,
   LABEL_TINGKAT_PRESTASI,
+  MAKS_UKURAN_BERKAS_MB,
+  MAKS_UKURAN_SERTIFIKAT_MB,
   type Prodi,
   type JenisDoc,
   type KategoriPrestasi,
@@ -161,8 +163,11 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
       setError(isPrestasi ? "Sertifikat harus berformat PDF, JPG, atau PNG." : "Hanya file berformat PDF yang diperbolehkan.");
       return;
     }
-    if (isPrestasi && selected.size > 4 * 1024 * 1024) {
-      setError("Ukuran file sertifikat maksimal 4 MB.");
+    const maksMb = isPrestasi ? MAKS_UKURAN_SERTIFIKAT_MB : MAKS_UKURAN_BERKAS_MB;
+    if (selected.size > maksMb * 1024 * 1024) {
+      setError(
+        `Ukuran file maksimal ${maksMb} MB (file ini ${(selected.size / 1024 / 1024).toFixed(1)} MB). Kompres PDF-nya dulu, atau hubungi admin.`
+      );
       return;
     }
     setError(null);
@@ -398,7 +403,7 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
           )}
         </div>
         <p className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800">
-          {isPrestasi ? "Pastikan sertifikat jelas terbaca. Format yang diterima: PDF, JPG, atau PNG (maksimal 4 MB)." : "Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD) di dalamnya. Hanya file berformat PDF yang diterima."}
+          {isPrestasi ? "Pastikan sertifikat jelas terbaca. Format yang diterima: PDF, JPG, atau PNG (maksimal 10 MB)." : "Penting: pastikan dokumen PDF yang diunggah sudah final dan memuat halaman pengesahan (TTD) di dalamnya. Hanya file berformat PDF yang diterima."}
         </p>
         <div className="flex justify-between">
           <button onClick={() => setLangkah(nomorSebelum)} className="rounded-lg border border-primary-600 px-5 py-2 text-primary-700 hover:bg-primary-50">← Kembali</button>

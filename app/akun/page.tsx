@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { GantiPasswordForm } from "./ganti-password-form";
 
 export default async function AkunPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 

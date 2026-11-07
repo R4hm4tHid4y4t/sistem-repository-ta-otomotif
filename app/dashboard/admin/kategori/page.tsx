@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { KategoriManager } from "./kategori-manager";
 
 export default async function KategoriPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: kategoriList } = await supabase.from("kategori_topik").select("id, nama_kategori, deskripsi").order("nama_kategori");
 
   return (

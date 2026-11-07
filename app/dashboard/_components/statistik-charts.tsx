@@ -4,7 +4,7 @@ import { LABEL_JENIS_DOC, type JenisDoc } from "@/lib/klasifikasi";
 import { getDaftarSdgs } from "@/lib/sdgs";
 
 export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const [{ data: taRows }, { data: dosenRows }, { data: kategoriRows }, sdgsList] = await Promise.all([
     supabase

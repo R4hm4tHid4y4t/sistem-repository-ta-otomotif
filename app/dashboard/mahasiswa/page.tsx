@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LABEL_JENIS_DOC, type JenisDoc } from "@/lib/klasifikasi";
 
 export default async function RingkasanMahasiswaPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   const { data: daftarTA } = await supabase

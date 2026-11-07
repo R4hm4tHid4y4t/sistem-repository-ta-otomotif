@@ -17,12 +17,13 @@ function hrefFor(searchParams: SP, changes: SP) {
   return qs ? `/repositori?${qs}` : "/repositori";
 }
 
-export default async function RepositoriPage({
-  searchParams,
-}: {
-  searchParams: { q?: string; prodi?: string; kategori?: string; tahun?: string; pembimbing?: string; penguji?: string; sdg?: string; kbk?: string; jenis?: string; bidang?: string };
-}) {
-  const supabase = createClient();
+export default async function RepositoriPage(
+  props: {
+    searchParams: Promise<{ q?: string; prodi?: string; kategori?: string; tahun?: string; pembimbing?: string; penguji?: string; sdg?: string; kbk?: string; jenis?: string; bidang?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const supabase = await createClient();
 
   let query = supabase
     .from("tugas_akhir")

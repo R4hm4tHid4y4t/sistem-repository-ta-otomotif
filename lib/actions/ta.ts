@@ -2,9 +2,10 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { MAKS_UKURAN_BERKAS_MB, MAKS_UKURAN_SERTIFIKAT_MB } from "@/lib/klasifikasi";
 
 export async function uploadTugasAkhir(formData: FormData) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -85,6 +86,9 @@ export async function uploadTugasAkhir(formData: FormData) {
     throw new Error("Jumlah penulis jurnal harus 4 sampai 6 orang.");
   }
 
+  if (jenis_doc !== "prestasi" && file.size > MAKS_UKURAN_BERKAS_MB * 1024 * 1024) {
+    throw new Error(`Ukuran file maksimal ${MAKS_UKURAN_BERKAS_MB} MB.`);
+  }
   const tipeBoleh =
     jenis_doc === "prestasi" ? ["application/pdf", "image/jpeg", "image/png"] : ["application/pdf"];
   if (!tipeBoleh.includes(file.type)) {
@@ -93,7 +97,7 @@ export async function uploadTugasAkhir(formData: FormData) {
     );
   }
   if (jenis_doc === "prestasi") {
-    if (file.size > 4 * 1024 * 1024) throw new Error("Ukuran file sertifikat maksimal 4 MB.");
+    if (file.size > MAKS_UKURAN_SERTIFIKAT_MB * 1024 * 1024) throw new Error(`Ukuran file sertifikat maksimal ${MAKS_UKURAN_SERTIFIKAT_MB} MB.`);
     if (!kategori_prestasi || !tingkat_prestasi) throw new Error("Kategori dan tingkat prestasi wajib dipilih.");
   }
 
@@ -168,7 +172,7 @@ export async function verifikasiTugasAkhir(
   status: "diterima" | "ditolak",
   catatan?: string
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -198,7 +202,7 @@ export async function verifikasiTugasAkhir(
 }
 
 export async function getSignedDownloadUrl(taId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: ta, error } = await supabase
     .from("tugas_akhir")

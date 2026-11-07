@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { RoleSelector } from "./role-selector";
 
 export default async function KelolaPenggunaPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: users } = await supabase
     .from("profiles")
     .select("id, nama_lengkap, email, role, nim, nidn")

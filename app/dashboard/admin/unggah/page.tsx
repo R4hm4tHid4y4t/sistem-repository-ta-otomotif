@@ -2,8 +2,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getDaftarSdgs } from "@/lib/sdgs";
 import { UploadWizard } from "@/app/dashboard/mahasiswa/upload/upload-wizard";
 
-export default async function AdminUnggahPage({ searchParams }: { searchParams: { berhasil?: string } }) {
-  const supabase = createClient();
+export default async function AdminUnggahPage(props: { searchParams: Promise<{ berhasil?: string }> }) {
+  const searchParams = await props.searchParams;
+  const supabase = await createClient();
   const [{ data: kategoriList }, { data: dosenList }, sdgsList] = await Promise.all([
     supabase.from("kategori_topik").select("id, nama_kategori").order("nama_kategori"),
     supabase.from("profiles").select("id, nama_lengkap, jabatan").eq("role", "dosen").order("nama_lengkap"),

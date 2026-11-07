@@ -9,8 +9,9 @@ const LABEL_PERAN_PENULIS: Record<string, string> = {
   dosen: "Dosen",
 };
 
-export default async function DetailTAPage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+export default async function DetailTAPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   let profile: { role: string } | null = null;

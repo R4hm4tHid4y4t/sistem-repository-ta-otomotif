@@ -5,7 +5,7 @@ import { terapkanPenulis } from "@/lib/penulis";
 import { LABEL_JENIS_DOC, type JenisDoc } from "@/lib/klasifikasi";
 
 export async function GET() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

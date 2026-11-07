@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { DosenRow } from "./dosen-row";
 
 export default async function MasterDosenPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: dosenList } = await supabase
     .from("profiles")
     .select("id, nama_lengkap, nidn, jabatan, kode_dosen")

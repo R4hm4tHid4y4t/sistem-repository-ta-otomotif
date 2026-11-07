@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SdgManager } from "./sdgs-manager";
 
 export default async function KelolaSdgsPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: sdgsList } = await supabase.from("sdgs_master").select("*").order("nomor");
 
   return (

@@ -1,4 +1,5 @@
-export default function BerhasilPage({ searchParams }: { searchParams: { id?: string } }) {
+export default async function BerhasilPage(props: { searchParams: Promise<{ id?: string }> }) {
+  const searchParams = await props.searchParams;
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl border border-slate-100 bg-white p-10 text-center shadow-sm">

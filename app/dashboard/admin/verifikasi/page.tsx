@@ -4,7 +4,7 @@ import { terapkanPenulis } from "@/lib/penulis";
 import { LABEL_JENIS_DOC, LABEL_BIDANG, type JenisDoc, type Bidang } from "@/lib/klasifikasi";
 
 export default async function KelolaTAPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: daftarTA } = await supabase
     .from("tugas_akhir")
     .select(`
