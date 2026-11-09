@@ -1,5 +1,7 @@
 import path from "node:path";
 import { mkdir, writeFile, unlink, stat } from "node:fs/promises";
+import { GalatPengguna } from "@/lib/galat";
+
 
 export const STORAGE_DIR = path.resolve(/*turbopackIgnore: true*/ process.env.FILE_STORAGE_DIR ?? "/mnt/e/repositori-files");
 const PENANDA = ".repositori-storage";
@@ -18,7 +20,7 @@ async function pastikanDiskSiap() {
   try {
     await stat(path.join(STORAGE_DIR, PENANDA));
   } catch {
-    throw new Error("Penyimpanan berkas tidak siap (HDD belum terpasang). Hubungi admin.");
+    throw new GalatPengguna("Penyimpanan berkas tidak siap (HDD belum terpasang). Hubungi admin.");
   }
 }
 

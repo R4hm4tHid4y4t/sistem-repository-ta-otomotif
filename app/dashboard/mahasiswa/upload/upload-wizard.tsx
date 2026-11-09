@@ -362,6 +362,10 @@ export function UploadWizard({ kategoriList, dosenList, sdgsList }: { kategoriLi
     startTransition(async () => {
       try {
         const hasil = await uploadTugasAkhir(fd);
+        if (hasil?.error) {
+          setError(hasil.error);
+          return;
+        }
         if (adminMode) {
           router.push(`/dashboard/admin/unggah?berhasil=${Date.now()}`);
           return;

@@ -4,13 +4,24 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { MAKS_UKURAN_BERKAS_MB, MAKS_UKURAN_SERTIFIKAT_MB } from "@/lib/klasifikasi";
 import { simpanBerkas, hapusBerkas } from "@/lib/storage";
+import { GalatPengguna } from "@/lib/galat";
 
-export async function uploadTugasAkhir(formData: FormData) {
+  export async function uploadTugasAkhir(formData: FormData): Promise<{ id?: string; error?: string }> {
+    try {
+      return await prosesUnggah(formData);
+    } catch (err) {
+      console.error("uploadTugasAkhir gagal:", err);
+      if (err instanceof GalatPengguna) return { error: err.message };
+      return { error: "Terjadi kesalahan di server. Coba lagi, atau hubungi admin." };
+    }
+  }
+
+  async function prosesUnggah(formData: FormData) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-    if (!user) throw new Error("Harus login sebagai mahasiswa.");
+    if (!user) throw new GalatPengguna("Harus login sebagai mahasiswa.");
 
   // Hanya admin yang boleh mengunggah atas nama orang lain
   const { data: pemanggil } = await supabase.from("profiles").select("role").eq("id", user.id).single();
@@ -43,7 +54,7 @@ export async function uploadTugasAkhir(formData: FormData) {
   const dosen_penguji_5_id = (formData.get("dosen_penguji_5_id") as string) || null;
 
   if (jenis_doc === "ta" && (!dosen_penguji_1_id || !dosen_penguji_2_id)) {
-    throw new Error("Penguji I dan Penguji II wajib diisi.");
+    throw new GalatPengguna("Penguji I dan Penguji II wajib diisi.");
   }
   const nama_perusahaan = (formData.get("nama_perusahaan") as string) || null;
   const alamat_perusahaan = (formData.get("alamat_perusahaan") as string) || null;
@@ -57,7 +68,7 @@ export async function uploadTugasAkhir(formData: FormData) {
 
   const jumlahKataAbstrak = (abstrak ?? "").trim().split(/\s+/).filter(Boolean).length;
   if ((jenis_doc === "ta" || jenis_doc === "jurnal" || jenis_doc === "laporan_ptk") && jumlahKataAbstrak > 350) {
-    throw new Error("Abstrak maksimal 350 kata.");
+    throw new GalatPengguna("Abstrak maksimal 350 kata.");
   }
   const judul_en = (formData.get("judul_en") as string) || null;
   const abstrak_en = (formData.get("abstrak_en") as string) || null;
@@ -81,25 +92,25 @@ export async function uploadTugasAkhir(formData: FormData) {
   const tanggal_selesai_pli = (formData.get("tanggal_selesai_pli") as string) || null;
   const semester_pelaksanaan = (formData.get("semester_pelaksanaan") as string) || null;
 
-  if (!file || file.size === 0) throw new Error("File wajib diunggah.");
+  if (!file || file.size === 0) throw new GalatPengguna("File wajib diunggah.");
 
   if (jenis_doc === "jurnal" && (penulis_jurnal.length < 4 || penulis_jurnal.length > 6)) {
-    throw new Error("Jumlah penulis jurnal harus 4 sampai 6 orang.");
+    throw new GalatPengguna("Jumlah penulis jurnal harus 4 sampai 6 orang.");
   }
 
   if (jenis_doc !== "prestasi" && file.size > MAKS_UKURAN_BERKAS_MB * 1024 * 1024) {
-    throw new Error(`Ukuran file maksimal ${MAKS_UKURAN_BERKAS_MB} MB.`);
+    throw new GalatPengguna(`Ukuran file maksimal ${MAKS_UKURAN_BERKAS_MB} MB.`);
   }
   const tipeBoleh =
     jenis_doc === "prestasi" ? ["application/pdf", "image/jpeg", "image/png"] : ["application/pdf"];
   if (!tipeBoleh.includes(file.type)) {
-    throw new Error(
+    throw new GalatPengguna(
       jenis_doc === "prestasi" ? "Sertifikat harus berformat PDF, JPG, atau PNG." : "File harus berformat PDF."
     );
   }
   if (jenis_doc === "prestasi") {
-    if (file.size > MAKS_UKURAN_SERTIFIKAT_MB * 1024 * 1024) throw new Error(`Ukuran file sertifikat maksimal ${MAKS_UKURAN_SERTIFIKAT_MB} MB.`);
-    if (!kategori_prestasi || !tingkat_prestasi) throw new Error("Kategori dan tingkat prestasi wajib dipilih.");
+    if (file.size > MAKS_UKURAN_SERTIFIKAT_MB * 1024 * 1024) throw new GalatPengguna(`Ukuran file sertifikat maksimal ${MAKS_UKURAN_SERTIFIKAT_MB} MB.`);
+    if (!kategori_prestasi || !tingkat_prestasi) throw new GalatPengguna("Kategori dan tingkat prestasi wajib dipilih.");
   }
 
   const namaAman = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -177,7 +188,7 @@ export async function verifikasiTugasAkhir(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Harus login sebagai admin.");
+  if (!user) throw new GalatPengguna("Harus login sebagai admin.");
 
   const { error } = await supabase
     .from("tugas_akhir")
@@ -210,7 +221,7 @@ export async function getSignedDownloadUrl(taId: string) {
     .select("file_path")
     .eq("id", taId)
     .single();
-  if (error || !ta) throw new Error("TA tidak ditemukan.");
+  if (error || !ta) throw new GalatPengguna("TA tidak ditemukan.");
 
   const { data: signed, error: signError } = await supabase.storage
     .from("dokumen-ta")
