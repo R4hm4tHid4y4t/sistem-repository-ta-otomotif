@@ -18,7 +18,11 @@ export function EditDosenForm({ dosen, onClose }: { dosen: Dosen; onClose: () =>
     setError(null);
     startTransition(async () => {
       try {
-        await updateDosen(dosen.id, nama, nidn, jabatan, kode);
+        const hasil = await updateDosen(dosen.id, nama, nidn, jabatan, kode);
+        if (hasil.error) {
+          setError(hasil.error);
+          return;
+        }
         onClose();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Gagal menyimpan.");
