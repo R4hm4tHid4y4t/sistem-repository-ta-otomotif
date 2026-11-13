@@ -11,7 +11,7 @@ export async function StatistikCharts({ lengkap = false }: { lengkap?: boolean }
       .from("tugas_akhir")
       .select("tahun, prodi, kategori_id, sdgs, kbk, jenis_doc, dosen_pembimbing_id, dosen_pembimbing_2_id, dosen_penguji_1_id, dosen_penguji_2_id, dosen_penguji_3_id, dosen_penguji_4_id, dosen_penguji_5_id")
       .eq("status_verifikasi", "diterima"),
-    supabase.from("profiles").select("id, nama_lengkap, kode_dosen").eq("role", "dosen"),
+    supabase.from("profiles").select("id, nama_lengkap").eq("role", "dosen"),
     supabase.from("kategori_topik").select("id, nama_kategori"),
     getDaftarSdgs(),
   ]);
