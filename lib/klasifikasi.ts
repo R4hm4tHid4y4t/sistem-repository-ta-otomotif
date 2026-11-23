@@ -52,5 +52,5 @@ export const LABEL_TINGKAT_PRESTASI: Record<TingkatPrestasi, string> = {
 
 // Batas ukuran berkas (MB). Ubah di sini kalau jurusan memutuskan angka lain,
 // dan sesuaikan serverActions.bodySizeLimit di next.config.mjs (dibuat sedikit lebih besar).
-export const MAKS_UKURAN_BERKAS_MB = 100;
+export const MAKS_UKURAN_BERKAS_MB = 40;
 export const MAKS_UKURAN_SERTIFIKAT_MB = 10;
