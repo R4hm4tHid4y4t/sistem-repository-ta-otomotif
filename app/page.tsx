@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { KBK_META } from "@/lib/kategori-icons";
 import { SEMUA_KBK } from "@/lib/klasifikasi";
 import { TACard } from "@/components/ta-card";
+import { JenisKarya } from "@/components/jenis-karya";
 import { terapkanPenulis } from "@/lib/penulis";
 import { getDaftarSdgs } from "@/lib/sdgs";
 import { Cog } from "lucide-react";
@@ -68,28 +69,30 @@ export default async function BerandaPage() {
           <form action="/repositori" method="GET" className="mt-6 flex overflow-hidden rounded-full shadow-lg">
             <input
               name="q"
-              placeholder="Cari judul, penulis, kata kunci, atau topik TA..."
+              placeholder="Cari judul, penulis, kata kunci, atau bidang kajian..."
               className="flex-1 px-5 py-3 text-slate-800 focus:outline-none"
             />
-            <button className="bg-accent-500 px-6 font-medium hover:bg-accent-600">Cari TA</button>
+            <button className="bg-accent-500 px-6 font-medium hover:bg-accent-600">Cari</button>
           </form>
         </div>
       </section>
 
       <section className="mx-auto -mt-8 max-w-6xl px-4">
         <div className="grid gap-4 rounded-2xl bg-white p-5 shadow-sm sm:grid-cols-4">
-          <Stat label="Total TA Tersimpan" value={totalTA ?? 0} />
-          <Stat label={`TA Tahun ${tahunIni}`} value={taTahunIni ?? 0} />
+          <Stat label="Total Karya Tersimpan" value={totalTA ?? 0} />
+          <Stat label={`Karya Tahun ${tahunIni}`} value={taTahunIni ?? 0} />
           <Stat label="Dosen Pembimbing Aktif" value={dosenAktif} />
-          <Stat label="TA Berkontribusi SDGs" value={taSdgs} />
+          <Stat label="Karya Berkontribusi SDGs" value={taSdgs} />
         </div>
       </section>
+
+      <JenisKarya />
 
       <section className="mx-auto max-w-6xl px-4 py-10">
         <h2 className="mb-4 text-lg font-heading font-semibold text-primary-800">Jelajahi Berdasarkan Program Studi</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <ProdiCard label="S1 Pendidikan Teknik Otomotif" desc="Skripsi pendidikan kejuruan, pengembangan media pembelajaran, penelitian pedagogik otomotif" jumlah={totalS1 ?? 0} href="/repositori?prodi=s1_pend_otomotif" />
-          <ProdiCard label="D3 Teknik Otomotif" desc="Laporan Tugas Akhir vokasional, rancang bangun, analisis teknis, diagnosis kendaraan" jumlah={totalD3 ?? 0} href="/repositori?prodi=d3_otomotif" />
+          <ProdiCard label="S1 Pendidikan Teknik Otomotif" desc="Skripsi, jurnal, laporan PLI, PLK, dan PTK, serta prestasi mahasiswa pendidikan teknik otomotif" jumlah={totalS1 ?? 0} href="/repositori?prodi=s1_pend_otomotif" />
+          <ProdiCard label="D3 Teknik Otomotif" desc="Tugas Akhir, laporan PLI, dan prestasi mahasiswa vokasi teknik otomotif" jumlah={totalD3 ?? 0} href="/repositori?prodi=d3_otomotif" />
         </div>
       </section>
 
@@ -144,7 +147,7 @@ function ProdiCard({ label, desc, jumlah, href }: { label: string; desc: string;
       <p className="font-heading font-semibold text-primary-800">{label}</p>
       <p className="mt-1 text-sm text-slate-500">{desc}</p>
       <p className="mt-3 text-2xl font-heading font-bold text-accent-500">{jumlah}</p>
-      <p className="text-xs text-slate-500">koleksi TA tersedia</p>
+      <p className="text-xs text-slate-500">karya tersedia</p>
     </a>
   );
 }

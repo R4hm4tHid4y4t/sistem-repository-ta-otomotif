@@ -172,7 +172,7 @@ import { GalatPengguna } from "@/lib/galat";
   await supabase.from("log_aktivitas").insert({
     user_id: user.id,
     aksi: "upload_ta",
-    deskripsi: `Mengunggah TA: ${judul}`,
+    deskripsi: `Mengunggah Karya: ${judul}`,
   });
 
   revalidatePath("/dashboard/mahasiswa/status");
@@ -204,7 +204,7 @@ export async function verifikasiTugasAkhir(
   await supabase.from("log_aktivitas").insert({
     user_id: user.id,
     aksi: "verifikasi_ta",
-    deskripsi: `TA ${taId} diubah ke status ${status}`,
+    deskripsi: `Karya ${taId} diubah ke status ${status}`,
     entity_type: "tugas_akhir",
     entity_id: taId,
   });
@@ -221,7 +221,7 @@ export async function getSignedDownloadUrl(taId: string) {
     .select("file_path")
     .eq("id", taId)
     .single();
-  if (error || !ta) throw new GalatPengguna("TA tidak ditemukan.");
+  if (error || !ta) throw new GalatPengguna("Karya tidak ditemukan.");
 
   const { data: signed, error: signError } = await supabase.storage
     .from("dokumen-ta")

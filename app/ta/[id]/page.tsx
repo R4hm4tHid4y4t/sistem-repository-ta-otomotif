@@ -324,7 +324,7 @@ export default async function DetailTAPage(props: { params: Promise<{ id: string
 
           {!isLapangan && (terkait ?? []).length > 0 && (
             <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-              <p className="mb-2 text-sm font-medium text-primary-800">TA Terkait</p>
+              <p className="mb-2 text-sm font-medium text-primary-800">Karya Terkait</p>
               <ul className="space-y-2 text-sm">
                 {(terkait ?? []).map((t: any) => (
                   <li key={t.id}>

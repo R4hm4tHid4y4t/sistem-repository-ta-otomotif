@@ -20,7 +20,7 @@ export default async function KelolaTAPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold text-primary-800">Kelola TA</h1>
+      <h1 className="mb-4 text-xl font-semibold text-primary-800">Kelola TA / Skripsi</h1>
       <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 text-left">
@@ -66,7 +66,7 @@ export default async function KelolaTAPage() {
                       </form>
                     ) : (
                       <form action={verifikasiTugasAkhir.bind(null, ta.id, "ditolak", "Ditarik oleh admin")}>
-                        <button className="font-medium text-red-600 hover:underline">Takedown</button>
+                        <button className="font-medium text-red-600 hover:underline">Takedown Karya</button>
                       </form>
                     )}
                   </td>
@@ -74,7 +74,7 @@ export default async function KelolaTAPage() {
               );
             })}
             {(daftarTA ?? []).length === 0 && (
-              <tr><td colSpan={9} className="p-3 text-slate-500">Belum ada TA.</td></tr>
+              <tr><td colSpan={9} className="p-3 text-slate-500">Belum ada TA / Skripsi.</td></tr>
             )}
           </tbody>
         </table>

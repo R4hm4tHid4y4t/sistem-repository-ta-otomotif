@@ -22,8 +22,8 @@ export default async function RingkasanAdminPage() {
     <div>
       <h1 className="mb-4 text-xl font-semibold text-primary-800">Ringkasan Admin</h1>
       <div className="grid gap-4 sm:grid-cols-4">
-        <StatBox label="TA Tayang" value={taTayang ?? 0} />
-        <StatBox label="TA Ditarik" value={taDitarik ?? 0} />
+        <StatBox label="Karya Tayang" value={taTayang ?? 0} />
+        <StatBox label="Karya Ditarik" value={taDitarik ?? 0} />
         <StatBox label="Mahasiswa Terdaftar" value={mahasiswaCount ?? 0} />
         <StatBox label="Dosen Terdaftar" value={dosenCount ?? 0} />
       </div>

@@ -35,7 +35,7 @@ export function StatistikChartsClient({
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-          <p className="mb-3 text-sm font-medium text-primary-800">Jumlah TA per Tahun & Program Studi</p>
+          <p className="mb-3 text-sm font-medium text-primary-800">Jumlah Karya per Tahun & Program Studi</p>
           {totalTA === 0 ? (
             <p className="text-sm text-slate-400">Belum ada data.</p>
           ) : (
@@ -93,7 +93,7 @@ export function StatistikChartsClient({
       {lengkap && (
         <>
           <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <p className="mb-3 text-sm font-medium text-primary-800">Jumlah TA Dibimbing per Dosen Pembimbing</p>
+            <p className="mb-3 text-sm font-medium text-primary-800">Jumlah Karya Dibimbing per Dosen Pembimbing</p>
             {perPembimbing.length === 0 ? (
               <p className="text-sm text-slate-400">Belum ada data.</p>
             ) : (
@@ -110,7 +110,7 @@ export function StatistikChartsClient({
           </div>
 
           <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-            <p className="mb-3 text-sm font-medium text-primary-800">Jumlah TA Diuji per Dosen Penguji</p>
+            <p className="mb-3 text-sm font-medium text-primary-800">Jumlah TA / Skripsi Diuji per Dosen Penguji</p>
             {perPenguji.length === 0 ? (
               <p className="text-sm text-slate-400">Belum ada data.</p>
             ) : (
@@ -125,14 +125,14 @@ export function StatistikChartsClient({
               </ResponsiveContainer>
             )}
             <p className="mt-2 text-xs text-slate-400">
-              Dihitung dari TA bimbingan dosen lain. TA bimbingan sendiri otomatis terhitung sebagai ketua penguji dan masuk ke grafik "Dibimbing" di atas, bukan di sini — jadi kinerja tidak dihitung dua kali.
+              Dihitung dari TA / Skripsi bimbingan dosen lain. TA /Skripsi bimbingan sendiri otomatis terhitung sebagai ketua penguji dan masuk ke grafik "Dibimbing" di atas, bukan di sini — jadi kinerja tidak dihitung dua kali.
             </p>
           </div>
         </>
       )}
 
       <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-        <p className="mb-3 text-sm font-medium text-primary-800">Kontribusi TA terhadap SDGs</p>
+        <p className="mb-3 text-sm font-medium text-primary-800">Kontribusi Karya terhadap SDGs</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {sdgsList.map((s) => (
             <div key={s.nomor} style={{ backgroundColor: s.warna }} className="rounded-xl p-3 text-white">

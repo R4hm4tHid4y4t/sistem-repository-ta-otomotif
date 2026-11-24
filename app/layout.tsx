@@ -12,8 +12,8 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Repositori Karya Ilmiah - Teknik Otomotif UNP",
-  description: "Sistem Repositori Karya Ilmiah Jurusan Teknik Otomotif Universitas Negeri Padang",
+  title: "Repositori Karya Ilmiah Teknik Otomotif UNP"
+  description: "Repositori karya ilmiah mahasiswa Teknik Otomotif UNP: Tugas Akhir, Jurnal, PLI, PLK, PTK, dan Prestasi.",
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
