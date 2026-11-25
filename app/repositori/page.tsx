@@ -97,7 +97,7 @@ export default async function RepositoriPage(
           <FilterSelect name="penguji" label="Dosen Penguji" placeholder="Semua dosen penguji" options={(dosenList ?? []).map((d) => ({ value: d.id, label: d.nama_lengkap }))} />
 
           <div>
-            <p className="mb-1 font-medium text-primary-800">Tag SDGs</p>
+            <p className="mb-1 font-medium text-primary-800">Tag SDGs (TA/Skripsi & Jurnal)</p>
             <div className="flex flex-wrap gap-1">
               {sdgsList.map((s) => {
                 const active = searchParams.sdg === String(s.nomor);

@@ -132,7 +132,7 @@ export function StatistikChartsClient({
       )}
 
       <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-        <p className="mb-3 text-sm font-medium text-primary-800">Kontribusi Karya terhadap SDGs</p>
+        <p className="mb-3 text-sm font-medium text-primary-800">Kontribusi Tugas Akhir/Skripsi dan Jurnal terhadap SDGs</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {sdgsList.map((s) => (
             <div key={s.nomor} style={{ backgroundColor: s.warna }} className="rounded-xl p-3 text-white">

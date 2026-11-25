@@ -25,7 +25,7 @@ export default async function BerandaPage() {
     supabase.from("tugas_akhir").select("*", { count: "exact", head: true }).eq("status_verifikasi", "diterima"),
     supabase.from("tugas_akhir").select("*", { count: "exact", head: true }).eq("status_verifikasi", "diterima").eq("tahun", tahunIni),
     supabase.from("tugas_akhir").select("dosen_pembimbing_id, dosen_pembimbing_2_id").eq("status_verifikasi", "diterima"),
-    supabase.from("tugas_akhir").select("sdgs").eq("status_verifikasi", "diterima"),
+    supabase.from("tugas_akhir").select("sdgs").eq("status_verifikasi", "diterima").in("jenis_doc", ["ta", "jurnal"]),
     supabase.from("tugas_akhir").select("*", { count: "exact", head: true }).eq("status_verifikasi", "diterima").eq("prodi", "s1_pend_otomotif"),
     supabase.from("tugas_akhir").select("*", { count: "exact", head: true }).eq("status_verifikasi", "diterima").eq("prodi", "d3_otomotif"),
     supabase.from("kategori_topik").select("id, nama_kategori"),
@@ -82,7 +82,7 @@ export default async function BerandaPage() {
           <Stat label="Total Karya Tersimpan" value={totalTA ?? 0} />
           <Stat label={`Karya Tahun ${tahunIni}`} value={taTahunIni ?? 0} />
           <Stat label="Dosen Pembimbing Aktif" value={dosenAktif} />
-          <Stat label="Karya Berkontribusi SDGs" value={taSdgs} />
+          <Stat label="TA/Skripsi & Jurnal Berkontribusi SDGs" value={taSdgs} />
         </div>
       </section>
 
